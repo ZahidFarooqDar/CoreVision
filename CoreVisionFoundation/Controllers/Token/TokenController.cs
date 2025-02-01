@@ -102,7 +102,7 @@ namespace CoreVisionFoundation.Controllers.Token
                 //                         31, 11, 59, 59);
                 //var x = date2.Subtract(date1);
                 //expiryDate = DateTime.Now.AddDays(x.Days);
-                var token = await _jwtHandler.ProtectAsync(_apiConfiguration.JwtTokenSigningKey, claims, new DateTimeOffset(DateTime.Now), new DateTimeOffset(expiryDate), "RenoWebsite");
+                var token = await _jwtHandler.ProtectAsync(_apiConfiguration.JwtTokenSigningKey, claims, new DateTimeOffset(DateTime.Now), new DateTimeOffset(expiryDate), "CoreVision");
                 // here if user is derived class, all properties will be sent
                 var tokenResponse = new TokenResponseSM()
                 {
@@ -151,7 +151,7 @@ namespace CoreVisionFoundation.Controllers.Token
                 }
                 //var expiryDate = DateTime.Now.AddDays(_apiConfiguration.DefaultTokenValidityDays);
                 var expiryDate = DateTime.Now.AddDays(tokenValidityInDays);
-                var token = await _jwtHandler.ProtectAsync(_apiConfiguration.JwtTokenSigningKey, claims, new DateTimeOffset(DateTime.Now), new DateTimeOffset(expiryDate), "RenoWebsite");
+                var token = await _jwtHandler.ProtectAsync(_apiConfiguration.JwtTokenSigningKey, claims, new DateTimeOffset(DateTime.Now), new DateTimeOffset(expiryDate), "CoreVision");
                 // here if user is derived class, all properties will be sent
                 var tokenResponse = new TokenResponseSM()
                 {

@@ -16,7 +16,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
     [ApiController]
     [Route("api/v1/[controller]")]
     
-    //[Authorize(AuthenticationSchemes = CodeVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin")]
+    [Authorize(AuthenticationSchemes = CodeVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin, ClientAdmin")]
     public partial class ClientUserController : ApiControllerWithOdataRoot<ClientUserSM>
     {
         #region Properties

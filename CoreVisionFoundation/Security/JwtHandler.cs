@@ -13,24 +13,32 @@ namespace CoreVisionFoundation.Security
         {
             _tokenIssuier = issuer;
         }
-
         public async Task<string> ProtectAsync(string encryptionKey, IEnumerable<Claim> lstClaims, DateTimeOffset issueDateOffset, DateTimeOffset expiryDateOffset, string audience)
         {
-            if (encryptionKey.Length < 16)
+            if (string.IsNullOrWhiteSpace(encryptionKey) || encryptionKey.Length < 32)
             {
-                throw new Exception("Key length should me more the 16 characters");
+                throw new Exception("Key length must be at least 32 characters");
             }
 
-            SigningCredentials signingCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(encryptionKey)), "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256");
-            JwtSecurityToken token = new JwtSecurityToken(_tokenIssuier, audience, lstClaims, issueDateOffset.UtcDateTime, expiryDateOffset.UtcDateTime, signingCredentials);
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
+            var keyBytes = Encoding.UTF8.GetBytes(encryptionKey);
+            var securityKey = new SymmetricSecurityKey(keyBytes);
+            var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
+            var token = new JwtSecurityToken(
+                _tokenIssuier,
+                audience,
+                lstClaims,
+                issueDateOffset.UtcDateTime,
+                expiryDateOffset.UtcDateTime,
+                signingCredentials);
+
+            return await Task.FromResult(new JwtSecurityTokenHandler().WriteToken(token));
+        }    
         public async Task<string> UnprotectToJwtStringAsync(string decryptionKey, string token)
         {
-            if (decryptionKey.Length < 16)
+            if (decryptionKey.Length < 32)
             {
-                throw new Exception("Key length should me more the 16 characters");
+                throw new Exception("Key length should me more the 32 characters");
             }
 
             return token;
