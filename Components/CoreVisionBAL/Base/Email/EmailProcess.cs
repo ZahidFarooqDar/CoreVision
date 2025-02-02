@@ -8,7 +8,7 @@ using CoreVisionBAL.Foundation.Base;
 
 namespace CoreVisionBAL.Base.Email
 {
-    public class EmailProcess : CodeVisionBalBase
+    public class EmailProcess : CoreVisionBalBase
     {
         private readonly APIConfiguration _apiConfiguration;
         public EmailProcess(IMapper mapper, ApiDbContext context, APIConfiguration apiConfiguration)

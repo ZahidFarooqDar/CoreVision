@@ -62,7 +62,7 @@ namespace CoreVisionFoundation.Controllers.Token
         {
             if (string.IsNullOrEmpty(idToken))
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Id Token cannot be null or empty", "Id Token cannot be null or empty");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Id Token cannot be null or empty", "Id Token cannot be null or empty");
             }
             var payload = await GoogleJsonWebSignature.ValidateAsync(idToken);
             var existingClientUser = await _clientUserProcess.GetClientUserByEmail(payload.Email);
@@ -87,9 +87,9 @@ namespace CoreVisionFoundation.Controllers.Token
                     externalUser = await _externalUserProcess.AddExternalUser(externalGoogleUser);
                 }
                 if (externalUser != null) // external user added / is already available
-                    throw new CodeVisionException(ApiErrorTypeSM.Success_NoLog, "Google Login Details Already Exist...Sign in Instead", "Google Login Details Already Exist. Please use login.");
+                    throw new CoreVisionException(ApiErrorTypeSM.Success_NoLog, "Google Login Details Already Exist...Sign in Instead", "Google Login Details Already Exist. Please use login.");
                 else // error in adding external user
-                    throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Internal error occured, try again after sometime. If problem persists, contact support.", $"Error in adding external user with id token {idToken}");
+                    throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Internal error occured, try again after sometime. If problem persists, contact support.", $"Error in adding external user with id token {idToken}");
             }
             string base64Picture;
             using (var httpClient = _httpClientFactory.CreateClient())
@@ -111,7 +111,7 @@ namespace CoreVisionFoundation.Controllers.Token
             ClientUserSM newUserSM = await _externalUserProcess.AddClientUserandExternalUserDetails(newUser, idToken, companyCode, externalUserType);
             if (newUserSM == null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Error in saving your details... Try Again", "Error in saving your details... Try Again");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Error in saving your details... Try Again", "Error in saving your details... Try Again");
             }
             else
             {
@@ -128,7 +128,7 @@ namespace CoreVisionFoundation.Controllers.Token
         {
             if (string.IsNullOrEmpty(idToken))
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Id Token cannot be null or empty", "Id Token cannot be null or empty");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Id Token cannot be null or empty", "Id Token cannot be null or empty");
             }
             var payload = await GoogleJsonWebSignature.ValidateAsync(idToken);
             var existingClientUser = await _clientUserProcess.GetClientUserByEmail(payload.Email);
@@ -157,7 +157,7 @@ namespace CoreVisionFoundation.Controllers.Token
                     return await CreateTokenForUser(existingClientUser, companyCode);
                 //throw new CodeVisionException(ApiErrorTypeSM.Success_NoLog, "Google Login Details Already Exist...Sign in Instead", "Google Login Details Already Exist. Please use login.");
                 else // error in adding external user
-                    throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Internal error occured, try again after sometime. If problem persists, contact support.", $"Error in adding external user with id token {idToken}");
+                    throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Internal error occured, try again after sometime. If problem persists, contact support.", $"Error in adding external user with id token {idToken}");
             }
             string base64Picture;
             using (var httpClient = _httpClientFactory.CreateClient())
@@ -179,7 +179,7 @@ namespace CoreVisionFoundation.Controllers.Token
             ClientUserSM newUserSM = await _externalUserProcess.AddClientUserandExternalUserDetails(newUser, idToken, companyCode, externalUserType);
             if (newUserSM == null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Error in saving your details... Try Again", "Error in saving your details... Try Again");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Error in saving your details... Try Again", "Error in saving your details... Try Again");
             }
             else
             {
@@ -200,7 +200,7 @@ namespace CoreVisionFoundation.Controllers.Token
         {
             if (string.IsNullOrEmpty(idToken))
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Id Token cannot be null or empty", "Id Token cannot be null or empty");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Id Token cannot be null or empty", "Id Token cannot be null or empty");
             }
 
             var httpClient = _httpClientFactory.CreateClient();
@@ -222,7 +222,7 @@ namespace CoreVisionFoundation.Controllers.Token
 
             if (emailId.IsNullOrEmpty())
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log,
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,
                     "We couldn't retrieve your Facebook email address. Please ensure that your Facebook account is properly linked and try again.",
                     "We couldn't retrieve your Facebook email address. Please ensure that your Facebook account is properly linked and try again.");
             }
@@ -250,9 +250,9 @@ namespace CoreVisionFoundation.Controllers.Token
                 }
                 if (externalUser != null) // external user added / is already available
 
-                    throw new CodeVisionException(ApiErrorTypeSM.Success_NoLog, "Google Login Details Already Exist...Sign in Instead", "Google Login Details Already Exist. Please use login.");
+                    throw new CoreVisionException(ApiErrorTypeSM.Success_NoLog, "Google Login Details Already Exist...Sign in Instead", "Google Login Details Already Exist. Please use login.");
                 else // error in adding external user
-                    throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Internal error occured, try again after sometime. If problem persists, contact support.", $"Error in adding external user with id token {idToken}");
+                    throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Internal error occured, try again after sometime. If problem persists, contact support.", $"Error in adding external user with id token {idToken}");
             }
             string base64Picture;
             using (var httpClients = _httpClientFactory.CreateClient())
@@ -274,7 +274,7 @@ namespace CoreVisionFoundation.Controllers.Token
             ClientUserSM newUserSM = await _externalUserProcess.AddClientUserandExternalUserDetails(newUser, idToken, companyCode, externalUserType);
             if (newUserSM == null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Error in saving your details... Try Again", "Error in saving your details... Try Again");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Error in saving your details... Try Again", "Error in saving your details... Try Again");
             }
             else
             {
@@ -291,7 +291,7 @@ namespace CoreVisionFoundation.Controllers.Token
         {
             if (string.IsNullOrEmpty(idToken))
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Id Token cannot be null or empty", "Id Token cannot be null or empty");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Id Token cannot be null or empty", "Id Token cannot be null or empty");
             }
             var httpClient = _httpClientFactory.CreateClient();
 
@@ -312,7 +312,7 @@ namespace CoreVisionFoundation.Controllers.Token
 
             if (emailId.IsNullOrEmpty())
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log,
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,
                     "We couldn't retrieve your Facebook email address. Please ensure that your Facebook account is properly linked and try again.",
                     "We couldn't retrieve your Facebook email address. Please ensure that your Facebook account is properly linked and try again.");
             }
@@ -343,7 +343,7 @@ namespace CoreVisionFoundation.Controllers.Token
                     return await CreateTokenForUser(existingClientUser, companyCode);
                 //throw new CodeVisionException(ApiErrorTypeSM.Success_NoLog, "Google Login Details Already Exist...Sign in Instead", "Google Login Details Already Exist. Please use login.");
                 else // error in adding external user
-                    throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Internal error occured, try again after sometime. If problem persists, contact support.", $"Error in adding external user with id token {idToken}");
+                    throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Internal error occured, try again after sometime. If problem persists, contact support.", $"Error in adding external user with id token {idToken}");
             }
             string base64Picture;
             using (var httpClients = _httpClientFactory.CreateClient())
@@ -365,7 +365,7 @@ namespace CoreVisionFoundation.Controllers.Token
             ClientUserSM newUserSM = await _externalUserProcess.AddClientUserandExternalUserDetails(newUser, idToken, companyCode, externalUserType);
             if (newUserSM == null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Error in saving your details... Try Again", "Error in saving your details... Try Again");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Error in saving your details... Try Again", "Error in saving your details... Try Again");
             }
             else
             {

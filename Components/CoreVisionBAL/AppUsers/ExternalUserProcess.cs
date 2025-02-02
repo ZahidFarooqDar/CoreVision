@@ -14,7 +14,7 @@ using CoreVisionBAL.ExceptionHandler;
 
 namespace CoreVisionBAL.AppUsers
 {
-    public partial class ExternalUserProcess : CodeVisionBalBase
+    public partial class ExternalUserProcess : CoreVisionBalBase
     {
         #region Properties
 
@@ -77,7 +77,7 @@ namespace CoreVisionBAL.AppUsers
         /// <param name="signUpSM"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        /// <exception cref="CodeVisionException"></exception>
+        /// <exception cref="CoreVisionException"></exception>
         public async Task<ClientUserSM> AddClientUserandExternalUserDetails(ClientUserSM signUpSM, string refreshToken, string companyCode, ExternalUserTypeSM externalUserType)
         {
             using (var transaction = await _apiDbContext.Database.BeginTransactionAsync())
@@ -88,7 +88,7 @@ namespace CoreVisionBAL.AppUsers
                 signUpSM.ProfilePicturePath = signUpSM.ProfilePicturePath.IsNullOrEmpty() ? null : await SaveFromBase64(signUpSM.ProfilePicturePath);
                 var companyDetail = await _clientCompanyDetailProcess.GetClientCompanyDetailByCompanyCode(companyCode);
                 if (companyDetail == null)
-                    throw new CodeVisionException(ApiErrorTypeSM.NoRecord_Log, "Error in adding user, Try after sometime",
+                    throw new CoreVisionException(ApiErrorTypeSM.NoRecord_Log, "Error in adding user, Try after sometime",
                         $"Company with companyCode= {companyCode} not found in db");
 
                 objDM.ClientCompanyDetailId = companyDetail.Id;
@@ -116,7 +116,7 @@ namespace CoreVisionBAL.AppUsers
                 }
 
                 await transaction.RollbackAsync();
-                throw new CodeVisionException(ApiErrorTypeSM.NoRecord_Log, "Error in adding user, Try after sometime",
+                throw new CoreVisionException(ApiErrorTypeSM.NoRecord_Log, "Error in adding user, Try after sometime",
                         $"Error in adding user, Try after sometime");
             }
         }
@@ -142,7 +142,7 @@ namespace CoreVisionBAL.AppUsers
                 }
                 else
                 {
-                    throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"ClientUser not found: {objIdToUpdate}", "Data to update not found, add as new instead.");
+                    throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"ClientUser not found: {objIdToUpdate}", "Data to update not found, add as new instead.");
                 }
             }
             return null;

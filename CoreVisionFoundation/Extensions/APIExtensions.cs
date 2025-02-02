@@ -73,7 +73,7 @@ namespace CoreVisionFoundation.Extensions
             #region API Authentication
 
             //Register Auth
-            services.Configure<CodeVisionAuthenticationSchemeOptions>(x => x.JwtTokenSigningKey = configObject.JwtTokenSigningKey);
+            services.Configure<CoreVisionAuthenticationSchemeOptions>(x => x.JwtTokenSigningKey = configObject.JwtTokenSigningKey);
 
             //Auth // can use issuer constructor if we want seperate issuer for qa,reg and prod etc
             services.AddSingleton<JwtHandler>(x => new JwtHandler(configObject.JwtIssuerName));
@@ -82,7 +82,7 @@ namespace CoreVisionFoundation.Extensions
             {
                 o.DefaultScheme = APIBearerTokenAuthHandler.DefaultSchema;
             })
-                .AddScheme<CodeVisionAuthenticationSchemeOptions, APIBearerTokenAuthHandler>(APIBearerTokenAuthHandler.DefaultSchema, o => { })
+                .AddScheme<CoreVisionAuthenticationSchemeOptions, APIBearerTokenAuthHandler>(APIBearerTokenAuthHandler.DefaultSchema, o => { })
                 // Uncomment for Cookie Authentication , see CookieController for more info
                 //.AddCookie((x) =>
                 //{
@@ -98,7 +98,7 @@ namespace CoreVisionFoundation.Extensions
 
             #region AutoRegister All Process
 
-            services.AutoRegisterAllBALAsSelfFromBaseTypes<CodeVisionBalBase>(ServiceLifetime.Scoped);
+            services.AutoRegisterAllBALAsSelfFromBaseTypes<CoreVisionBalBase>(ServiceLifetime.Scoped);
             services.AddHttpClient();
             
 

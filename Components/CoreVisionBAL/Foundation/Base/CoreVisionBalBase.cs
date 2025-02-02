@@ -4,23 +4,23 @@ using CoreVisionDAL.Context;
 
 namespace CoreVisionBAL.Foundation.Base
 {
-    public class CodeVisionBalBase : BalRoot
+    public class CoreVisionBalBase : BalRoot
     {
         protected readonly IMapper _mapper;
         protected readonly ApiDbContext _apiDbContext;
 
-        public CodeVisionBalBase(IMapper mapper, ApiDbContext apiDbContext)
+        public CoreVisionBalBase(IMapper mapper, ApiDbContext apiDbContext)
         {
             _mapper = mapper;
             _apiDbContext = apiDbContext;
         }
     }
-    public abstract class CodeVisionBalOdataBase<T> : BalOdataRoot<T>
+    public abstract class CoreVisionBalOdataBase<T> : BalOdataRoot<T>
     {
         protected readonly IMapper _mapper;
         protected readonly ApiDbContext _apiDbContext;
 
-        protected CodeVisionBalOdataBase(IMapper mapper, ApiDbContext apiDbContext)
+        protected CoreVisionBalOdataBase(IMapper mapper, ApiDbContext apiDbContext)
         {
             _mapper = mapper;
             _apiDbContext = apiDbContext;

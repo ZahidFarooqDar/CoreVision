@@ -35,7 +35,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
         [HttpGet]
         [Route("odata")]
         [ApiExplorerSettings(IgnoreApi = true)]
-        [Authorize(AuthenticationSchemes = CodeVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin")]
         public async Task<ActionResult<ApiResponse<IEnumerable<ApplicationUserSM>>>> GetAsOdata(ODataQueryOptions<ApplicationUserSM> oDataOptions)
         {
             //TODO: validate inputs here probably 
@@ -48,7 +48,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
         #region Get Endpoints
 
         [HttpGet("{skip}/{top}")]
-        [Authorize(AuthenticationSchemes = CodeVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin")]
         public async Task<ActionResult<ApiResponse<IEnumerable<ApplicationUserSM>>>> GetAll(int skip, int top)
         {
             /* var passKey = _configuration.SuperAdminUserAdditionKey;
@@ -62,7 +62,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
 
 
         [HttpGet("{id}")]
-        [Authorize(AuthenticationSchemes = CodeVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin")]
         public async Task<ActionResult<ApiResponse<ApplicationUserSM>>> GetApplicationUserById(int id)
         {
             var singleSM = await _applicationUserProcess.GetApplicationUserById(id);
@@ -77,7 +77,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
         }
 
         [HttpGet("mine")]
-        [Authorize(AuthenticationSchemes = CodeVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin,ClientAdmin, BlogAdmin, SystemAdmin")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin,ClientAdmin, BlogAdmin, SystemAdmin")]
         public async Task<ActionResult<ApiResponse<ApplicationUserSM>>> GetMineApplicationUserDetails()
         {
             int currentUserRecordId = User.GetUserRecordIdFromCurrentUserClaims();
@@ -95,7 +95,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
         #region Count
 
         [HttpGet("count")]
-        [Authorize(AuthenticationSchemes = CodeVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin")]
         public async Task<ActionResult<ApiResponse<IntResponseRoot>>> GetAllApplicationUsersCount()
         {
             var count = await _applicationUserProcess.GetAllApplicationUsersCountResponse();
@@ -107,7 +107,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
         #region Add/Update Endpoints
 
         [HttpPost()]
-        [Authorize(AuthenticationSchemes = CodeVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin")]
         public async Task<ActionResult<ApiResponse<ApplicationUserSM>>> PostApplicationUser(string key, [FromBody] ApiRequest<ApplicationUserSM> apiRequest)
         {
             #region Check Request
@@ -145,7 +145,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
        
 
         [HttpPut("mine")]
-        [Authorize(AuthenticationSchemes = CodeVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SystemAdmin, SuperAdmin, BlogAdmin")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SystemAdmin, SuperAdmin, BlogAdmin")]
         public async Task<ActionResult<ApiResponse<ApplicationUserSM>>> Put([FromBody] ApiRequest<ApplicationUserSM> apiRequest)
         {
             #region Check Request
@@ -180,7 +180,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
         }
 
         [HttpPut("login-details")]
-        [Authorize(AuthenticationSchemes = CodeVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SystemAdmin, SuperAdmin")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SystemAdmin, SuperAdmin")]
         public async Task<ActionResult<ApiResponse<ApplicationUserSM>>> UpdateDetailsForLogin(int userId, bool isEmailConfirmed, bool isPhoneNumberConfirmed, LoginStatusSM loginStatus)
         {
             #region Check Request
@@ -208,7 +208,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
 
         
         [HttpDelete("mine/logo")]
-        [Authorize(AuthenticationSchemes = CodeVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin,SystemAdmin")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin,SystemAdmin")]
         public async Task<ActionResult<ApiResponse<DeleteResponseRoot>>> DeleteUserProfilePicture()
         {
             #region Check Request

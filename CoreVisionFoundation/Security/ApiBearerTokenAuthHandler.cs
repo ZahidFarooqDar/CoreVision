@@ -4,9 +4,9 @@ using System.Text.Encodings.Web;
 
 namespace CoreVisionFoundation.Security
 {
-    public partial class APIBearerTokenAuthHandler : CodeVisionBearerTokenAuthHandlerRoot
+    public partial class APIBearerTokenAuthHandler : CoreVisionBearerTokenAuthHandlerRoot
     {
-        public APIBearerTokenAuthHandler(IOptionsMonitor<CodeVisionAuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, JwtHandler jwtHandler)
+        public APIBearerTokenAuthHandler(IOptionsMonitor<CoreVisionAuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, JwtHandler jwtHandler)
             : base(options, logger, encoder, clock, jwtHandler)
         {
         }

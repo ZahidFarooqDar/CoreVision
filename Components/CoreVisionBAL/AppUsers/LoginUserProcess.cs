@@ -8,7 +8,7 @@ using CoreVisionServiceModels.Foundation.Base.Interfaces;
 
 namespace CoreVisionBAL.AppUsers
 {
-    public abstract class LoginUserProcess<T> : CodeVisionBalOdataBase<T>
+    public abstract class LoginUserProcess<T> : CoreVisionBalOdataBase<T>
     {
         #region Properties
 

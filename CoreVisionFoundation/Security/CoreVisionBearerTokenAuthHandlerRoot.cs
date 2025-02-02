@@ -7,14 +7,14 @@ using System.Text.Encodings.Web;
 
 namespace CoreVisionFoundation.Security
 {
-    public class CodeVisionBearerTokenAuthHandlerRoot : AuthenticationHandler<CodeVisionAuthenticationSchemeOptions>
+    public class CoreVisionBearerTokenAuthHandlerRoot : AuthenticationHandler<CoreVisionAuthenticationSchemeOptions>
     {
         private string _failureMsg = string.Empty;
         private readonly JwtHandler _jwtHandler;
 
         public const string DefaultSchema = "CodeVisionBearerSchema";
 
-        public CodeVisionBearerTokenAuthHandlerRoot(IOptionsMonitor<CodeVisionAuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, JwtHandler jwtHandler)
+        public CoreVisionBearerTokenAuthHandlerRoot(IOptionsMonitor<CoreVisionAuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, JwtHandler jwtHandler)
             : base(options, logger, encoder, clock)
         {
             _jwtHandler = jwtHandler;

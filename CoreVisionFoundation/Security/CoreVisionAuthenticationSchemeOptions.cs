@@ -2,7 +2,7 @@
 
 namespace CoreVisionFoundation.Security
 {
-    public class CodeVisionAuthenticationSchemeOptions : AuthenticationSchemeOptions
+    public class CoreVisionAuthenticationSchemeOptions : AuthenticationSchemeOptions
     {
         public string JwtTokenSigningKey { get; set; }
     }

@@ -121,7 +121,7 @@ namespace CoreVisionFoundation.Controllers.Token
 
         [HttpGet]
         [Route("GenerateTokenFromSuperAdmin/{userId}")]
-        [Authorize(AuthenticationSchemes = CodeVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin")]
         public async Task<ActionResult<ApiResponse<TokenResponseSM>>> ValidateLoginAndGenerateToken(int userId, int tokenValidityInDays)
         {
             #region Check Request

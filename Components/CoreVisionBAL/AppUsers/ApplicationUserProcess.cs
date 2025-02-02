@@ -114,27 +114,27 @@ namespace CoreVisionBAL.AppUsers
         /// <returns>
         /// If Successful, returns newly created ApplicationUserSM 
         /// </returns>
-        /// <exception cref="CodeVisionException"></exception>
+        /// <exception cref="CoreVisionException"></exception>
         public async Task<ApplicationUserSM> AddApplicationUser(ApplicationUserSM applicationUserSM, string roleType)
         {
             if (applicationUserSM == null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, @"Please Provide details to Add new User", "Please Provide details to Add new User");
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, @"Please Provide details to Add new User", "Please Provide details to Add new User");
             }
 
             if (roleType.ToString() == RoleTypeSM.SystemAdmin.ToString() && applicationUserSM.RoleType.ToString() != RoleTypeSM.SystemAdmin.ToString())
             {
-                throw new CodeVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Access Denied to Add another type of User", "Access Denied to Add another type of User");
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Access Denied to Add another type of User", "Access Denied to Add another type of User");
             }
             var existingUserWithEmail = await _apiDbContext.ApplicationUsers.Where(x => x.EmailId == applicationUserSM.EmailId).FirstOrDefaultAsync();
             var existingUserWithLoginId = await _apiDbContext.ApplicationUsers.Where(x => x.LoginId == applicationUserSM.LoginId).FirstOrDefaultAsync();
             if (existingUserWithEmail != null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "User With EmailId already existed...Try another EmailId", "User With EmailId already existed...Try another EmailId");
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "User With EmailId already existed...Try another EmailId", "User With EmailId already existed...Try another EmailId");
             }
             if (existingUserWithLoginId != null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "User With LoginId already existed...Try another LoginId", "User With LoginId already existed...Try another LoginId");
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "User With LoginId already existed...Try another LoginId", "User With LoginId already existed...Try another LoginId");
             }
             string profilePicturePath = null;
             var objDM = _mapper.Map<ApplicationUserDM>(applicationUserSM);
@@ -146,7 +146,7 @@ namespace CoreVisionBAL.AppUsers
             // objDM.LoginStatus = DomainModels.Enums.LoginStatusDM.Enabled;
             if (objDM.PasswordHash.IsNullOrEmpty())
             {
-                throw new CodeVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, @"Password is Mandatory", "Please Enter  Password");
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, @"Password is Mandatory", "Please Enter  Password");
             }
             var passHash = await _passwordEncryptHelper.ProtectAsync<string>(objDM.PasswordHash);
             if (passHash != null)
@@ -186,29 +186,29 @@ namespace CoreVisionBAL.AppUsers
         /// <returns>
         /// If Successful, returns ApplicationUserSM 
         /// </returns>
-        /// <exception cref="CodeVisionException"></exception>
+        /// <exception cref="CoreVisionException"></exception>
         public async Task<ApplicationUserSM> UpdateApplicationUser(int userId, ApplicationUserSM objSM)
         {
             if (userId == null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.NoRecord_NoLog, $"Please Provide Value to Id", $"Please Provide Value to Id");
+                throw new CoreVisionException(ApiErrorTypeSM.NoRecord_NoLog, $"Please Provide Value to Id", $"Please Provide Value to Id");
             }
 
             if (objSM == null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"Nothing to Update", "Nothing to Update");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Nothing to Update", "Nothing to Update");
             }
 
             ApplicationUserDM objDM = await _apiDbContext.ApplicationUsers.FindAsync(userId);
             if (objDM == null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"User Not Found", "User Not Found");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"User Not Found", "User Not Found");
             }
             if (!objSM.LoginId.IsNullOrEmpty())
             {
                 if (objSM.LoginId != objDM.LoginId && objSM.LoginId.Length < 5)
                 {
-                    throw new CodeVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, @"Please provide LoginId with minimum 5 characters", "Please provide LoginId with minimum 5 characters");
+                    throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, @"Please provide LoginId with minimum 5 characters", "Please provide LoginId with minimum 5 characters");
                 }
             }
 
@@ -259,12 +259,12 @@ namespace CoreVisionBAL.AppUsers
 
                 if (existingClient != null && objSM.LoginId != objDM.LoginId)
                 {
-                    throw new CodeVisionException(ApiErrorTypeSM.Access_Denied_Log, $"Application User With Login Id: {objSM.LoginId} Already Existed...Choose Another LoginId", $"Application User With Login Id: {objSM.LoginId} Already Existed...Choose Another LoginId");
+                    throw new CoreVisionException(ApiErrorTypeSM.Access_Denied_Log, $"Application User With Login Id: {objSM.LoginId} Already Existed...Choose Another LoginId", $"Application User With Login Id: {objSM.LoginId} Already Existed...Choose Another LoginId");
                 }
 
                 if (existingClientWithEmail != null && objSM.EmailId != objDM.EmailId)
                 {
-                    throw new CodeVisionException(ApiErrorTypeSM.Access_Denied_Log, $"Application User With Email Id: {objSM.EmailId} Already Existed...Choose Another Email Id", $"Application User With Email Id: {objSM.LoginId} Already Existed...Choose Another EmailId");
+                    throw new CoreVisionException(ApiErrorTypeSM.Access_Denied_Log, $"Application User With Email Id: {objSM.EmailId} Already Existed...Choose Another Email Id", $"Application User With Email Id: {objSM.LoginId} Already Existed...Choose Another EmailId");
                 }
                 if (objSM.DateOfBirth == default)
                 {
@@ -308,11 +308,11 @@ namespace CoreVisionBAL.AppUsers
                     return response;
                     //return _mapper.Map<ApplicationUserSM>(objDM);
                 }
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"Something went wrong while Updating Application User Details", "Something went wrong while Updating Application User Details");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Something went wrong while Updating Application User Details", "Something went wrong while Updating Application User Details");
             }
             else
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"Application User not found: ", "Data to update not found, add as new instead.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Application User not found: ", "Data to update not found, add as new instead.");
             }
         }
 
@@ -330,7 +330,7 @@ namespace CoreVisionBAL.AppUsers
         /// <returns>
         ///  If Successful, returns ApplicationUserSM Otherwise return null
         /// </returns>
-        /// <exception cref="CodeVisionException"></exception>
+        /// <exception cref="CoreVisionException"></exception>
         public async Task<ApplicationUserSM> UpdateDetailsForLoginPurpose(int id, bool isEmailConfirmed, bool isPhoneNumberConfirmed, LoginStatusSM loginStatus)
         {
             var objDM = await _apiDbContext.ApplicationUsers.FindAsync(id);
@@ -347,7 +347,7 @@ namespace CoreVisionBAL.AppUsers
                 var response = await GetApplicationUserById(id);
                 return response;
             }
-            throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"Something went wrong while Updating Application User Details", "Something went wrong while Updating Application User Details");
+            throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Something went wrong while Updating Application User Details", "Something went wrong while Updating Application User Details");
         }
 
         #endregion Update details for Login Purpose
@@ -482,7 +482,7 @@ namespace CoreVisionBAL.AppUsers
 
             if (objDM == null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Application User not found...Please check Again", "Application User not found...Please check Again");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Application User not found...Please check Again", "Application User not found...Please check Again");
             }
             if (!objDM.ProfilePicturePath.IsNullOrEmpty())
             {
@@ -509,7 +509,7 @@ namespace CoreVisionBAL.AppUsers
                      File.Delete(imageFullPath); */
                 return true;
             }
-            throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Cannot Update Profile Picture", "Cannot Update Profile Picture");
+            throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Cannot Update Profile Picture", "Cannot Update Profile Picture");
         }
 
         #endregion Private Functions

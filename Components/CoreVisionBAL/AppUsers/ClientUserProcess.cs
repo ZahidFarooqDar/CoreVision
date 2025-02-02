@@ -141,13 +141,13 @@ namespace CoreVisionBAL.AppUsers
         /// <returns>
         /// If Successful, Returns  ClientUserSM otherwise returns null
         /// </returns>
-        /// <exception cref="CodeVisionException"></exception>
+        /// <exception cref="CoreVisionException"></exception>
         public async Task<IEnumerable<ClientUserSM?>> GetUsersByCompanyId(int companyId, int skip, int top)
         {
             List<ClientUserSM> clientUsers = new List<ClientUserSM>();
             if (companyId <= 0)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, @"Please provide valid Client Company Id", "Please provide valid Client Company Id");
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, @"Please provide valid Client Company Id", "Please provide valid Client Company Id");
             }
             var dm = await _apiDbContext.ClientUsers.AsNoTracking().Where(x => x.ClientCompanyDetailId == companyId)
                 .Skip(skip).Take(top)
@@ -188,7 +188,7 @@ namespace CoreVisionBAL.AppUsers
         {
             var user = await _apiDbContext.ClientUsers.FindAsync(id);
             if (user == null)
-                throw new CodeVisionException(ApiErrorTypeSM.NoRecord_Log, $"User not found in db with id {id}", $"User not found in db with id {id}");
+                throw new CoreVisionException(ApiErrorTypeSM.NoRecord_Log, $"User not found in db with id {id}", $"User not found in db with id {id}");
             LoginUserSM? loginUserSM = null;
             int compId = default;
             string companyCode = default;
@@ -214,25 +214,25 @@ namespace CoreVisionBAL.AppUsers
         /// </summary>
         /// <param name="clientUserSM"></param>
         /// <returns></returns>
-        /// <exception cref="CodeVisionException"></exception>
+        /// <exception cref="CoreVisionException"></exception>
         public async Task<BoolResponseRoot?> AddNewUser(ClientUserSM signUpSM, string companyCode, string link)
         {
             if (signUpSM == null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Please provide details for Sign Up", "Please provide details for Sign Up");
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Please provide details for Sign Up", "Please provide details for Sign Up");
             }
             if (signUpSM.LoginId.Length < 5)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.InvalidInputData_Log, "Please provide LoginId with minimum 5 characters", "Please provide LoginId with minimum 5 characters");
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_Log, "Please provide LoginId with minimum 5 characters", "Please provide LoginId with minimum 5 characters");
             }
 
             if (signUpSM.EmailId.IsNullOrEmpty())
             {
-                throw new CodeVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Please provide EmailId ", "Please provide EmailId");
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Please provide EmailId ", "Please provide EmailId");
             }
             if (signUpSM.FirstName.IsNullOrEmpty())
             {
-                throw new CodeVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Please provide FirstName ", "Please provide FirstName");
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Please provide FirstName ", "Please provide FirstName");
             }
 
             var existingUserWithEmail = await GetClientUserByEmail(signUpSM.EmailId);
@@ -243,12 +243,12 @@ namespace CoreVisionBAL.AppUsers
                 {
                     if (existingUserWithEmail.EmailId == signUpSM.EmailId)
                     {
-                        throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "The email address you entered is already in use. Please log in or use a different email address.");
+                        throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "The email address you entered is already in use. Please log in or use a different email address.");
                     }
 
                     if (existingUserWithEmail.LoginId == signUpSM.LoginId)
                     {
-                        throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "The login ID you entered is already taken. Please log in or choose a different login ID.");
+                        throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "The login ID you entered is already taken. Please log in or choose a different login ID.");
                     }
                 }
                 if (existingUserWithEmail.IsEmailConfirmed == true)
@@ -268,7 +268,7 @@ namespace CoreVisionBAL.AppUsers
             var existingUserWithLoginId = await GetClientUserByLoginId(signUpSM.LoginId);
             if (existingUserWithLoginId != null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "The provided Login ID is already in use. Please use a different Login ID.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "The provided Login ID is already in use. Please use a different Login ID.");
             }
 
             using (var transaction = await _apiDbContext.Database.BeginTransactionAsync())
@@ -279,7 +279,7 @@ namespace CoreVisionBAL.AppUsers
 
                 if (signUpSM.PasswordHash.IsNullOrEmpty())
                 {
-                    throw new CodeVisionException(ApiErrorTypeSM.Access_Denied_Log, "Password Is Mandatory", "Password Is Mandatory");
+                    throw new CoreVisionException(ApiErrorTypeSM.Access_Denied_Log, "Password Is Mandatory", "Password Is Mandatory");
                 }
 
                 if (!signUpSM.ProfilePicturePath.IsNullOrEmpty())
@@ -315,7 +315,7 @@ namespace CoreVisionBAL.AppUsers
                 }
 
                 transaction.Rollback();
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Something went wrong while adding your details, Please try again later");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Something went wrong while adding your details, Please try again later");
             }
         }
 
@@ -330,12 +330,12 @@ namespace CoreVisionBAL.AppUsers
         {
             if (objSM.Email.IsNullOrEmpty())
             {
-                throw new CodeVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Please provide your email", "Please provide your email");
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Please provide your email", "Please provide your email");
             }
 
             if (link.IsNullOrEmpty())
             {
-                throw new CodeVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Something went wrong while generating link to send email verification", "Something went wrong while generating link to send email verification");
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Something went wrong while generating link to send email verification", "Something went wrong while generating link to send email verification");
             }
 
             var response = await SendEmailVerificationLink(objSM, link);
@@ -354,18 +354,18 @@ namespace CoreVisionBAL.AppUsers
         /// <returns>
         /// If Successful returns ClientUserSM Otherwise null
         /// </returns>
-        /// <exception cref="CodeVisionException"></exception>
+        /// <exception cref="CoreVisionException"></exception>
 
         public async Task<ClientUserSM> UpdateClientUser(int userId, ClientUserSM objSM)
         {
             if (userId == null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.NoRecord_NoLog, $"Please Provide Value to Id", $"Please Provide Value to Id");
+                throw new CoreVisionException(ApiErrorTypeSM.NoRecord_NoLog, $"Please Provide Value to Id", $"Please Provide Value to Id");
             }
 
             if (objSM == null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"Nothing to Update", "Nothing to Update");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Nothing to Update", "Nothing to Update");
             }
 
             ClientUserDM objDM = await _apiDbContext.ClientUsers.FindAsync(userId);
@@ -373,7 +373,7 @@ namespace CoreVisionBAL.AppUsers
 
             if (objSM.LoginId != objDM.LoginId)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Access_Denied_Log,
+                throw new CoreVisionException(ApiErrorTypeSM.Access_Denied_Log,
                     "LoginId update is not allowed.",
                     "The LoginId cannot be changed. Please contact support if you need assistance."
                     );
@@ -381,7 +381,7 @@ namespace CoreVisionBAL.AppUsers
 
             if (objSM.EmailId != objDM.EmailId)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Access_Denied_Log,
+                throw new CoreVisionException(ApiErrorTypeSM.Access_Denied_Log,
                     "Email update is not allowed.",
                     "The email address cannot be changed. Please contact support if you need assistance."
                     );
@@ -462,11 +462,11 @@ namespace CoreVisionBAL.AppUsers
 
                     //return _mapper.Map<ClientUserSM>(objDM);
                 }
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"Something went wrong while Updating Client Details", "Something went wrong while Updating Client Details");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Something went wrong while Updating Client Details", "Something went wrong while Updating Client Details");
             }
             else
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"Client not found: ", "Data to update not found, add as new instead.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Client not found: ", "Data to update not found, add as new instead.");
             }
         }
 
@@ -552,7 +552,7 @@ namespace CoreVisionBAL.AppUsers
         /// <returns>
         /// DeleteResponseRoot
         /// </returns>
-        /// <exception cref="CodeVisionException"></exception>
+        /// <exception cref="CoreVisionException"></exception>
         public async Task<DeleteResponseRoot> DeleteClientUserById(int id)
         {
             var client = await _apiDbContext.ClientUsers.AsNoTracking().Where(x => x.Id == id).FirstOrDefaultAsync();
@@ -577,7 +577,7 @@ namespace CoreVisionBAL.AppUsers
                     Where(x => x.ClientCompanyDetailId == client.ClientCompanyDetailId).CountAsync();
                 if (usersCountInCompany < 1)
                 {
-                    throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"User cannot be deleted as we should have atleast one user associated with company", "User cannot be deleted as we should have atleast one user associated with company");
+                    throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"User cannot be deleted as we should have atleast one user associated with company", "User cannot be deleted as we should have atleast one user associated with company");
                 }
 
                 if (!client.ProfilePicturePath.IsNullOrEmpty())
@@ -610,13 +610,13 @@ namespace CoreVisionBAL.AppUsers
         public async Task<BoolResponseRoot> SendLoginIdToEmail(EmailConfirmationSM objSM)
         {
             if (string.IsNullOrWhiteSpace(objSM.Email))
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Please provide an email ID. Email cannot be empty.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Please provide an email ID. Email cannot be empty.");
 
 
             var user = await GetClientUserByEmail(objSM.Email);
             if (user == null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "This email is not associated with any registered account. Please sign up to create your account.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "This email is not associated with any registered account. Please sign up to create your account.");
             }
 
             if (!string.IsNullOrWhiteSpace(objSM.Email))
@@ -638,7 +638,7 @@ namespace CoreVisionBAL.AppUsers
             }
             else
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Unable to send the email. Please try again later.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Unable to send the email. Please try again later.");
             }
         }
 
@@ -665,7 +665,7 @@ namespace CoreVisionBAL.AppUsers
             var authCode = await _passwordEncryptHelper.ProtectAsync(forgotPassword);
             //authCode = authCode.Replace("+", "%2B");
             if (string.IsNullOrWhiteSpace(forgotPassword.UserName))
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "User Name cannot be empty.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "User Name cannot be empty.");
             var user = ValidateUserFromDatabaseandGetEmail(forgotPassword);
             if (!string.IsNullOrWhiteSpace(user.email))
             {
@@ -680,7 +680,7 @@ namespace CoreVisionBAL.AppUsers
             }
             else
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"No ClientUser with username '{forgotPassword.UserName}' found.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"No ClientUser with username '{forgotPassword.UserName}' found.");
             }
         }
 
@@ -704,13 +704,13 @@ namespace CoreVisionBAL.AppUsers
             ForgotPasswordSM forgotPassword = await _passwordEncryptHelper.UnprotectAsync<ForgotPasswordSM>(resetPasswordRequest.authCode);
             if (forgotPassword.Expiry < DateTime.Now)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"Link expired.", $"Password reset link expired.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Link expired.", $"Password reset link expired.");
             }
             if (!string.IsNullOrWhiteSpace(resetPasswordRequest.NewPassword))
             {
                 if (string.IsNullOrEmpty(forgotPassword.UserName))
                 {
-                    throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"No ClientUser with username '{forgotPassword.UserName}' found.", $"No ClientUser with username '{forgotPassword.UserName}' found.");
+                    throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"No ClientUser with username '{forgotPassword.UserName}' found.", $"No ClientUser with username '{forgotPassword.UserName}' found.");
                 }
 
                 var user = (from r in _apiDbContext.ClientUsers
@@ -723,7 +723,7 @@ namespace CoreVisionBAL.AppUsers
                     string newPassword = await _passwordEncryptHelper.ProtectAsync<string>(resetPasswordRequest.NewPassword);
                     if (string.Equals(user.ClientUser.PasswordHash, newPassword))
                     {
-                        throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"Please don't use old password, use new one.", $"Please don't use old password, use new one.");
+                        throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Please don't use old password, use new one.", $"Please don't use old password, use new one.");
                     }
                     else
                     {
@@ -735,13 +735,13 @@ namespace CoreVisionBAL.AppUsers
                 }
                 else
                 {
-                    throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"No ClientUser with username '{forgotPassword.UserName}' found.", $"No ClientUser with username '{forgotPassword.UserName}' found.");
+                    throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"No ClientUser with username '{forgotPassword.UserName}' found.", $"No ClientUser with username '{forgotPassword.UserName}' found.");
                 }
             }
             else
             {
 
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Password can not be empty", "Password should not contain Spaces.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Password can not be empty", "Password should not contain Spaces.");
             }
         }
 
@@ -754,7 +754,7 @@ namespace CoreVisionBAL.AppUsers
         private string ValidateUserUsingEmail(EmailConfirmationSM objSM)
         {
             if (string.IsNullOrWhiteSpace(objSM.Email))
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Email cannot be empty.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Email cannot be empty.");
 
             var user = (from c in _apiDbContext.ClientUsers
                         where c.EmailId.ToUpper() == objSM.Email.ToUpper()
@@ -762,7 +762,7 @@ namespace CoreVisionBAL.AppUsers
 
             if (user == null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"No User with email '{objSM.Email}' found.", $"No User with email '{objSM.Email}' found.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"No User with email '{objSM.Email}' found.", $"No User with email '{objSM.Email}' found.");
             }
 
             return (objSM.Email);
@@ -771,16 +771,16 @@ namespace CoreVisionBAL.AppUsers
         private (string email, string pwd) ValidateUserFromDatabaseandGetEmail(ForgotPasswordSM forgotPassword)
         {
             if (string.IsNullOrWhiteSpace(forgotPassword.UserName))
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "User Name cannot be empty.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "User Name cannot be empty.");
             var user = (from u in _apiDbContext.ClientUsers
                         where u.LoginId.ToUpper() == forgotPassword.UserName.ToUpper()
                         select new { ClientUser = u }).FirstOrDefault();
             if (user == null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"No ClientUser with username '{forgotPassword.UserName}' found.", $"No ClientUser with username '{forgotPassword.UserName}' found.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"No ClientUser with username '{forgotPassword.UserName}' found.", $"No ClientUser with username '{forgotPassword.UserName}' found.");
             }
             if (string.IsNullOrWhiteSpace(user.ClientUser.EmailId))
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"Please Update Email For ClientUser With Username '{forgotPassword.UserName}'.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Please Update Email For ClientUser With Username '{forgotPassword.UserName}'.");
             return (user.ClientUser.EmailId, user.ClientUser.PasswordHash);
         }
 
@@ -794,13 +794,13 @@ namespace CoreVisionBAL.AppUsers
         /// <param name="forgotPassword">ForgotPassword Object</param>
         /// <param name="link">String Object</param>
         /// <returns>boolean value on success or failure</returns>
-        /// <exception cref="CodeVisionException"></exception>
+        /// <exception cref="CoreVisionException"></exception>
         public async Task<BoolResponseRoot> SendEmailVerificationLink(EmailConfirmationSM objSM, string link)
         {
             var authCode = await _passwordEncryptHelper.ProtectAsync(objSM);
 
             if (string.IsNullOrWhiteSpace(objSM.Email))
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Email cannot be empty.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Email cannot be empty.");
             var email = ValidateUserUsingEmail(objSM);
             if (!string.IsNullOrWhiteSpace(email))
             {
@@ -816,7 +816,7 @@ namespace CoreVisionBAL.AppUsers
             }
             else
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"No User with email '{objSM.Email}' found.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"No User with email '{objSM.Email}' found.");
             }
         }
         /// <summary>
@@ -848,7 +848,7 @@ namespace CoreVisionBAL.AppUsers
         /// <param name="resetPasswordRequest">ResetPasswordRequestSM Object</param>
         /// <param name="newPassword">String NewPassword</param>
         /// <returns>The Boolen Response Object.</returns>
-        /// <exception cref="CodeVisionException"></exception>
+        /// <exception cref="CoreVisionException"></exception>
 
 
         public async Task<BoolResponseRoot> VerifyEmailRequest(VerifyEmailRequestSM objSM)
@@ -871,17 +871,17 @@ namespace CoreVisionBAL.AppUsers
                     {
                         return new BoolResponseRoot(true, "Your Email Verified Successfully, Login to your Account now");
                     }
-                    throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"Something went wrong while verifying your email, Please try again later");
+                    throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Something went wrong while verifying your email, Please try again later");
                 }
                 else
                 {
-                    throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"No ClientUser with email '{sm.Email}' found.", $"No ClientUser with username '{sm.Email}' found.");
+                    throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"No ClientUser with email '{sm.Email}' found.", $"No ClientUser with username '{sm.Email}' found.");
                 }
             }
             else
             {
 
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Email can not be empty", "Email can not be empty");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Email can not be empty", "Email can not be empty");
             }
         }
 
@@ -897,7 +897,7 @@ namespace CoreVisionBAL.AppUsers
         /// <returns>
         /// Returns message (string) response
         /// </returns>
-        /// <exception cref="CodeVisionException"></exception>
+        /// <exception cref="CoreVisionException"></exception>
         private async Task<bool> UpdateProfilePicture(int userId, string base64String)
         {
             var imageFullPath = "";
@@ -905,7 +905,7 @@ namespace CoreVisionBAL.AppUsers
 
             if (objDM == null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Client not found...Please check Again", "Client not found...Please check Again");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Client not found...Please check Again", "Client not found...Please check Again");
             }
             if (!objDM.ProfilePicturePath.IsNullOrEmpty())
             {
@@ -932,7 +932,7 @@ namespace CoreVisionBAL.AppUsers
                      File.Delete(imageFullPath); */
                 return true;
             }
-            throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "", "Cannot Update Profile Picture");
+            throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "", "Cannot Update Profile Picture");
         }
         static async Task<string?> SaveFromBase64(string base64String)
         {

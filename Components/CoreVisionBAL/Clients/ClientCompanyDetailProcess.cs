@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CoreVisionBAL.ExceptionHandler;
 using CoreVisionBAL.Foundation.Base;
 using CoreVisionBAL.Foundation.CommonUtils;
 using CoreVisionDAL.Context;
@@ -9,13 +10,10 @@ using CoreVisionServiceModels.Foundation.Base.Enums;
 using CoreVisionServiceModels.Foundation.Base.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
-using CoreVisionServiceModels.Client;
-using CoreVisionBAL.ExceptionHandler;
 
 namespace CoreVisionBAL.Clients
 {
-    public class ClientCompanyDetailProcess : CodeVisionBalOdataBase<ClientCompanyDetailSM>
+    public class ClientCompanyDetailProcess : CoreVisionBalOdataBase<ClientCompanyDetailSM>
     {
         #region Peoperties
 
@@ -234,7 +232,7 @@ namespace CoreVisionBAL.Clients
                 var res = await GetClientCompanyDetailById(newCompany.Id);
                 return res;
             }
-            throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Something went wrong while saving database changes");
+            throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Something went wrong while saving database changes");
 
         }
 
@@ -247,12 +245,12 @@ namespace CoreVisionBAL.Clients
         /// <returns>
         /// If Successful, Returns updated ClientCompanyDetailSM, Otherwise returns null
         /// </returns>
-        /// <exception cref="CodeVisionException"></exception>
+        /// <exception cref="CoreVisionException"></exception>
         public async Task<ClientCompanyDetailSM> UpdateClientCompany(int objIdToUpdate, ClientCompanyDetailSM objSM)
         {
             if (objSM == null)
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"Nothing to Update", "Nothing to Update");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Nothing to Update", "Nothing to Update");
             }
 
             ClientCompanyDetailDM objDM = await _apiDbContext.ClientCompanyDetails
@@ -308,7 +306,7 @@ namespace CoreVisionBAL.Clients
             }
             else
             {
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, $"Client Company Detail not found: ", "Data to update not found, add as new instead.");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Client Company Detail not found: ", "Data to update not found, add as new instead.");
             }
         }
 
@@ -332,7 +330,7 @@ namespace CoreVisionBAL.Clients
             if (objDM == null)
             {
                 // If UserCompanyDetailDM is not found, throw an exception
-                throw new CodeVisionException(ApiErrorTypeSM.Fatal_Log, "Company Details not found...Please check Again", "Company Details not found...Please check Again");
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Company Details not found...Please check Again", "Company Details not found...Please check Again");
             }
 
             var imageFullPath = "";

@@ -14,7 +14,7 @@ using CoreVisionBAL.ExceptionHandler;
 
 namespace CoreVisionBAL.Token
 {
-    public partial class TokenProcess : CodeVisionBalBase
+    public partial class TokenProcess : CoreVisionBalBase
     {
         #region Properties
 
@@ -58,7 +58,7 @@ namespace CoreVisionBAL.Token
                         {
 
                             // Todo: Decide whether todo password less login or not
-                            throw new CodeVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, @"Please log in using your Google or Facebook account or Click on Forgot Password to change your password", "Please log in using your Google or Facebook account or Click on Forgot Password to change your password");
+                            throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, @"Please log in using your Google or Facebook account or Click on Forgot Password to change your password", "Please log in using your Google or Facebook account or Click on Forgot Password to change your password");
 
                         }
                         /*var data = await (from comp in _apiDbContext.ClientCompanyDetails

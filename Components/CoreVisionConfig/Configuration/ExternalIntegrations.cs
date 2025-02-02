@@ -93,6 +93,8 @@
         public string LanguageDetectionModel { get; set; }
         public string EntitiesDetectionModel { get; set; }
         public string ImageToTextModel { get; set; }
+        public string TextToImageModel { get; set; }
+        public string DeepSeekModel { get; set; }
         public string StoryAIModel { get; set; }
         public bool IsTestingMode { get; set; }
     }
