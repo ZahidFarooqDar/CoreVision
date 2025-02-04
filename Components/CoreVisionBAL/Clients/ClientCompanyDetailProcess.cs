@@ -205,36 +205,7 @@ namespace CoreVisionBAL.Clients
             }
         }
 
-        /// <summary>
-        /// Check Company using companyCode
-        /// </summary>
-        /// <param name="companyCode"></param>
-        /// <returns></returns>
-        public async Task<ClientCompanyDetailSM> AddCompanyDetails(string companyCode)
-        {
-            var existingCompany = await _apiDbContext.ClientCompanyDetails.Where(x => x.CompanyCode == companyCode).FirstOrDefaultAsync();
-            if (existingCompany != null)
-            {
-                return _mapper.Map<ClientCompanyDetailSM>(existingCompany);
-            }
-            var newCompany = new ClientCompanyDetailDM()
-            {
-                Name = "Credit Application",
-                ContactEmail = "contact@renosoftware.com",
-                CreatedBy = _loginUserDetail.LoginId,
-                CreatedOnUTC = DateTime.UtcNow,
-                CompanyCode = companyCode,
-            };
-
-            await _apiDbContext.ClientCompanyDetails.AddAsync(newCompany);
-            if (await _apiDbContext.SaveChangesAsync() > 0)
-            {
-                var res = await GetClientCompanyDetailById(newCompany.Id);
-                return res;
-            }
-            throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Something went wrong while saving database changes");
-
-        }
+        
 
         #region Update  Company Details
 

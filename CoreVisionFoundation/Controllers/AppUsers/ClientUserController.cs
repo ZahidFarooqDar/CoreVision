@@ -45,7 +45,6 @@ namespace CoreVisionFoundation.Controllers.AppUsers
         [HttpGet]
         [Route("odata")]
         [ApiExplorerSettings(IgnoreApi = true)]
-        //[Authorize(AuthenticationSchemes = RenoBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "ClientAdmin")]
         public async Task<ActionResult<ApiResponse<IEnumerable<ClientUserSM>>>> GetAsOdata(ODataQueryOptions<ClientUserSM> oDataOptions)
         {
             //oDataOptions.Filter = new FilterQueryOption();
@@ -75,12 +74,6 @@ namespace CoreVisionFoundation.Controllers.AppUsers
             return Ok(ModelConverter.FormNewSuccessResponse(listSM));
         }
 
-        [HttpGet("bool")]
-        public IActionResult GetValue()
-        {
-            return Ok("wow");
-        }
-
         [HttpGet("companyusers/count/{companyId}")]
         public async Task<ActionResult<ApiResponse<IntResponseRoot>>> GetCountOfCompanyUsers(int companyId)
         {
@@ -91,6 +84,21 @@ namespace CoreVisionFoundation.Controllers.AppUsers
         [HttpGet("{id}")]
         public async Task<ActionResult<ApiResponse<ClientUserSM>>> GetById(int id)
         {
+            var singleSM = await _clientUserProcess.GetClientUserById(id);
+            if (singleSM != null)
+            {
+                return ModelConverter.FormNewSuccessResponse(singleSM);
+            }
+            else
+            {
+                return NotFound(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_IdNotFound, ApiErrorTypeSM.NoRecord_NoLog));
+            }
+        }
+
+        [HttpGet("mine")]
+        public async Task<ActionResult<ApiResponse<ClientUserSM>>> GetMine()
+        {
+            var id = User.GetUserRecordIdFromCurrentUserClaims();
             var singleSM = await _clientUserProcess.GetClientUserById(id);
             if (singleSM != null)
             {
@@ -149,7 +157,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-            var id = User.GetCompanyRecordIdFromCurrentUserClaims();
+            var id = User.GetUserRecordIdFromCurrentUserClaims();
              if (id <= 0)
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_IdInvalid, ApiErrorTypeSM.InvalidInputData_NoLog));

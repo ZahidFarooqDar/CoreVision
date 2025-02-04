@@ -404,7 +404,7 @@ namespace CoreVisionFoundation.Controllers.Token
                 claims.Add(new Claim(DomainConstants.ClaimsRoot.Claim_ClientId, clientUserSM.ClientCompanyDetailId.ToString()));
             }
             var expiryDate = DateTime.Now.AddDays(_configuration.DefaultTokenValidityDays);
-            var token = await _jwtHandler.ProtectAsync(_configuration.JwtTokenSigningKey, claims, new DateTimeOffset(DateTime.Now), new DateTimeOffset(expiryDate), "RenoWebsite");
+            var token = await _jwtHandler.ProtectAsync(_configuration.JwtTokenSigningKey, claims, new DateTimeOffset(DateTime.Now), new DateTimeOffset(expiryDate), "CoreVision");
             var tokenResponse = new TokenResponseSM()
             {
                 AccessToken = token,

@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Azure.AI.TextAnalytics;
+using Azure;
 using CoreVisionBAL.ExceptionHandler;
 using CoreVisionBAL.Foundation;
 using CoreVisionBAL.Foundation.Base;
@@ -99,6 +101,14 @@ namespace CoreVisionFoundation.Extensions
             #region AutoRegister All Process
 
             services.AutoRegisterAllBALAsSelfFromBaseTypes<CoreVisionBalBase>(ServiceLifetime.Scoped);
+            services.AddSingleton<TextAnalyticsClient>(sp =>
+            {
+                string endpoint = configObject.ExternalIntegrations.AzureConfiguration.TextAnalyticsConfiguration.EndPoint;
+                string key = configObject.ExternalIntegrations.AzureConfiguration.TextAnalyticsConfiguration.ApiKey;
+
+                var credential = new AzureKeyCredential(key);
+                return new TextAnalyticsClient(new Uri(endpoint), credential);
+            });
             services.AddHttpClient();
             
 

@@ -1,6 +1,5 @@
-using CoreVisionFoundation;
 
-namespace Reno.Web.MainApi.API
+namespace CoreVisionFoundation
 {
     public class Program
     {

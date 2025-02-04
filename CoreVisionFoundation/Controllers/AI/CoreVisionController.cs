@@ -1,11 +1,13 @@
-﻿using CoreVisionBAL.Projects.HuggingFace;
+﻿using CoreVisionBAL.Projects.AzureAI;
+using CoreVisionBAL.Projects.BaseAIProcess;
+using CoreVisionBAL.Projects.HuggingFace;
+using CoreVisionFoundation.Security;
 using CoreVisionServiceModels.Foundation.Base.CommonResponseRoot;
 using CoreVisionServiceModels.Foundation.Base.Enums;
+using CoreVisionServiceModels.v1.General.AzureAI;
 using CoreVisionServiceModels.v1.General.HuggingFace;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using CoreVisionFoundation.Security;
 
 namespace CoreVisionFoundation.Controllers.AI
 {
@@ -15,7 +17,9 @@ namespace CoreVisionFoundation.Controllers.AI
     public class CoreVisionController : ControllerBase
     {
         public readonly HuggingfaceProcess _huggingfaceProcess;
-        public CoreVisionController(HuggingfaceProcess huggingfaceProcess) 
+        public readonly BaseAIProcess _baseAIProcess;
+        private readonly AzureAIProcess _azureAIProcess;
+        public CoreVisionController(HuggingfaceProcess huggingfaceProcess, BaseAIProcess baseAIProcess, AzureAIProcess azureAIProcess) 
         {
             _huggingfaceProcess = huggingfaceProcess;
         }
@@ -43,7 +47,7 @@ namespace CoreVisionFoundation.Controllers.AI
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-            var resp = await _huggingfaceProcess.ExtractTextFromImageAsync(innerReq);
+            var resp = await _azureAIProcess.ExtractTextFromBase64ImageAsync(innerReq);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
 
         }
@@ -71,21 +75,35 @@ namespace CoreVisionFoundation.Controllers.AI
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-            var resp = await _huggingfaceProcess.TranslateTextAsync(innerReq);
+            var resp = await _baseAIProcess.BaseMethodForTextTranslation(innerReq);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
 
         }
 
-        [HttpPost("summary")]
+        [HttpPost("short-summary")]
         [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "ClientEmployee, CompanyAutomation")]
-        public async Task<ActionResult<ApiResponse<HuggingFaceResponseSM>>> SummarizeTextAsync([FromBody] ApiRequest<HuggingFaceRequestSM> apiRequest)
+        public async Task<ActionResult<ApiResponse<HuggingFaceResponseSM>>> SummarizeTextAsync([FromBody] ApiRequest<AzureAIRequestSM> apiRequest)
         {
             var innerReq = apiRequest?.ReqData;
             if (innerReq == null)
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-            var resp = await _huggingfaceProcess.SummarizeTextAsync(innerReq);
+            var resp = await _baseAIProcess.BaseMethodForShortSummarization(innerReq);
+            return Ok(ModelConverter.FormNewSuccessResponse(resp));
+
+        }
+
+        [HttpPost("descriptive-summary")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "ClientEmployee, CompanyAutomation")]
+        public async Task<ActionResult<ApiResponse<HuggingFaceResponseSM>>> DescriptiveSummarizeTextAsync([FromBody] ApiRequest<AzureAIRequestSM> apiRequest)
+        {
+            var innerReq = apiRequest?.ReqData;
+            if (innerReq == null)
+            {
+                return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
+            }
+            var resp = await _baseAIProcess.BaseMethodForExtensiveSummarization(innerReq);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
 
         }
