@@ -1,11 +1,13 @@
 ﻿using CoreVisionBAL.Projects.AzureAI;
 using CoreVisionBAL.Projects.BaseAIProcess;
 using CoreVisionBAL.Projects.HuggingFace;
+using CoreVisionBAL.Projects.StoryAI;
 using CoreVisionFoundation.Security;
 using CoreVisionServiceModels.Foundation.Base.CommonResponseRoot;
 using CoreVisionServiceModels.Foundation.Base.Enums;
 using CoreVisionServiceModels.v1.General.AzureAI;
 using CoreVisionServiceModels.v1.General.HuggingFace;
+using CoreVisionServiceModels.v1.General.StoryAI;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,9 +21,13 @@ namespace CoreVisionFoundation.Controllers.AI
         public readonly HuggingfaceProcess _huggingfaceProcess;
         public readonly BaseAIProcess _baseAIProcess;
         private readonly AzureAIProcess _azureAIProcess;
-        public CoreVisionController(HuggingfaceProcess huggingfaceProcess, BaseAIProcess baseAIProcess, AzureAIProcess azureAIProcess) 
+        private readonly StoryProcess _storyProcess;
+        public CoreVisionController(HuggingfaceProcess huggingfaceProcess, BaseAIProcess baseAIProcess, StoryProcess storyProcess, AzureAIProcess azureAIProcess) 
         {
             _huggingfaceProcess = huggingfaceProcess;
+            _baseAIProcess = baseAIProcess;
+            _storyProcess = storyProcess;
+            _azureAIProcess = azureAIProcess;
         }
 
         [HttpPost("audio-transcription")]
@@ -118,6 +124,20 @@ namespace CoreVisionFoundation.Controllers.AI
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
             var resp = await _huggingfaceProcess.GenerateHuggingImageAsync(innerReq);
+            return Ok(ModelConverter.FormNewSuccessResponse(resp));
+
+        }
+
+        [HttpPost("generate-story")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "ClientEmployee, CompanyAutomation")]
+        public async Task<ActionResult<ApiResponse<ContentGenerationResponseSM>>> GenerateStoryAsync([FromBody] ApiRequest<ContentGenerationRequestSM> apiRequest)
+        {
+            var innerReq = apiRequest?.ReqData;
+            if (innerReq == null)
+            {
+                return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
+            }
+            var resp = await _storyProcess.GenerateStory(innerReq);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
 
         }
