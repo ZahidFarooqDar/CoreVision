@@ -12,8 +12,4 @@
     
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="v1\General\" />
-  </ItemGroup>
-
 </Project>

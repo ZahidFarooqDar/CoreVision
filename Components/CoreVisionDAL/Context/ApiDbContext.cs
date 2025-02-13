@@ -1,9 +1,9 @@
 ﻿using CoreVisionDAL.Base;
-using Microsoft.EntityFrameworkCore;
-using CoreVisionDomainModels.Client;
 using CoreVisionDomainModels.AppUser;
-using System;
+using CoreVisionDomainModels.Client;
 using CoreVisionDomainModels.Foundation;
+using CoreVisionDomainModels.v1.General.ScanCodes;
+using Microsoft.EntityFrameworkCore;
 
 namespace CoreVisionDAL.Context
 {
@@ -22,6 +22,7 @@ namespace CoreVisionDAL.Context
         public DbSet<ClientUserDM> ClientUsers { get; set; }
         public DbSet<ClientCompanyDetailDM> ClientCompanyDetails { get; set; }
         public DbSet<ExternalUserDM> ExternalUsers { get; set; }
+        public DbSet<ScanCodesFormatDM> ScanCodes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

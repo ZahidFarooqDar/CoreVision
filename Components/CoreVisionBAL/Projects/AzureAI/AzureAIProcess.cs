@@ -1,21 +1,20 @@
-﻿using Azure;
+﻿using AutoMapper;
+using Azure;
 using Azure.AI.TextAnalytics;
-using AutoMapper;
+using CoreVisionBAL.ExceptionHandler;
 using CoreVisionBAL.Foundation.Base;
-using CoreVisionServiceModels.v1.General.AzureAI;
-using CoreVisionDAL.Context;
 using CoreVisionConfig.Configuration;
+using CoreVisionDAL.Context;
 using CoreVisionServiceModels.Enums;
 using CoreVisionServiceModels.Foundation.Base.Enums;
+using CoreVisionServiceModels.v1.General;
+using CoreVisionServiceModels.v1.General.AzureAI;
 using CoreVisionServiceModels.v1.General.HuggingFace;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
-using System.Text;
-using CoreVisionServiceModels.v1.General;
-using CoreVisionBAL.ExceptionHandler;
-using CoreVisionBAL.Projects.HuggingFace;
-using System.Text.Json;
 using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 
 
 namespace CoreVisionBAL.Projects.AzureAI

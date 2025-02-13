@@ -208,9 +208,9 @@ namespace CoreVisionBAL.AppUsers
 
         #region Add User
 
-        #region Add New Credit App User and Compass App User
+        #region Add App User
         /// <summary>
-        /// Creates new user for credit application
+        /// Creates new user for application
         /// </summary>
         /// <param name="clientUserSM"></param>
         /// <returns></returns>
@@ -299,7 +299,7 @@ namespace CoreVisionBAL.AppUsers
                 objDM.CreatedBy = _loginUserDetail.LoginId;
                 objDM.CreatedOnUTC = DateTime.UtcNow;
                 objDM.IsEmailConfirmed = false;
-                objDM.IsPhoneNumberConfirmed = true;
+                objDM.IsPhoneNumberConfirmed = false;
                 objDM.LoginStatus = LoginStatusDM.Enabled;
 
                 await _apiDbContext.ClientUsers.AddAsync(objDM);

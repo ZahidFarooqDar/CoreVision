@@ -73,7 +73,7 @@ namespace CoreVisionFoundation.Controllers.Token
             {
                 return Unauthorized(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessages.Display_UserPasswordResetRequired, ApiErrorTypeSM.Access_Denied_Log));
             }
-            else if (!userSM.IsEmailConfirmed || !userSM.IsPhoneNumberConfirmed)
+            else if (!userSM.IsEmailConfirmed)
             {
                 return Unauthorized(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessages.Display_UserNotVerified, ApiErrorTypeSM.Access_Denied_Log));
             }
