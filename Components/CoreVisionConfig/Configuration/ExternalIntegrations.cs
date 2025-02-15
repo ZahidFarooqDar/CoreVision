@@ -8,12 +8,15 @@
             this.DataRaptorConfiguration = new DataRaptorConfiguration();
             this.HomeChefConfiguration = new HomeChefConfiguration();
             this.HuggingFaceConfiguration = new HuggingFaceConfiguration();
+            this.CohereConfiguration = new CohereConfiguration();
+
         }
         public DataRaptorConfiguration DataRaptorConfiguration { get; set; }
         public StripeConfiguration StripeConfiguration { get; set; }
         public HomeChefConfiguration HomeChefConfiguration { get; set; }
         public AzureConfiguration AzureConfiguration { get; set; }
         public HuggingFaceConfiguration HuggingFaceConfiguration { get; set; }
+        public CohereConfiguration CohereConfiguration { get; set; }
 
     }
     public class DataRaptorConfiguration
@@ -55,7 +58,6 @@
         public ComputerVisionConfiguration ComputerVisionConfiguration { get; set; }
         public TextAnalyticsConfiguration TextAnalyticsConfiguration { get; set; }
         public TextTranslatorConfiguration TextTranslatorConfiguration { get; set; }
-        public string AzureProcessingModel { get; set; }
         public string AzureMapsApiKey { get; set; }
         public bool IsTestingMode { get; set; }
     }
@@ -88,7 +90,6 @@
         public string ApiKey { get; set; }
         public string TranscriptionModel { get; set; }
         public string SummarizeModel { get; set; }
-        public string HuggingfaceProcessingModel { get; set; }
         public string MinuteOfMeeting { get; set; }
         public string TranslationModel { get; set; }
         public string LanguageDetectionModel { get; set; }
@@ -97,6 +98,14 @@
         public string TextToImageModel { get; set; }
         public string DeepSeekModel { get; set; }
         public string StoryAIModel { get; set; }
+        public bool IsTestingMode { get; set; }
+    }
+    public class CohereConfiguration
+    {
+        public string BaseUrl { get; set; }
+        public string ApiKey { get; set; }
+        public string SummarizeModel { get; set; }
+        public string TranslationModel { get; set; }
         public bool IsTestingMode { get; set; }
     }
 }

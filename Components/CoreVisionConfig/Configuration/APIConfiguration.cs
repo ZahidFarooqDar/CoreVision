@@ -14,6 +14,9 @@
         public int ValidityInDays { get; set; }
         public int RedeemCodeValidity { get; set; }
 
+        public string AzureProcessingModel { get; set; }
+        public string HuggingFaceProcessingModel { get; set; }
+
 
         #region External App Integration
         public ExternalIntegrations ExternalIntegrations { get; set; }

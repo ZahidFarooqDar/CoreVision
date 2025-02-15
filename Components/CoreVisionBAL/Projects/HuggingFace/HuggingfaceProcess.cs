@@ -3,24 +3,26 @@ using CoreVisionBAL.ExceptionHandler;
 using CoreVisionBAL.Foundation.Base;
 using CoreVisionConfig.Configuration;
 using CoreVisionDAL.Context;
+using CoreVisionServiceModels.Enums;
 using CoreVisionServiceModels.Foundation.Base.Enums;
+using CoreVisionServiceModels.v1.General.AzureAI;
 using CoreVisionServiceModels.v1.General.HuggingFace;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
-using System.Text;
 using System.Net.Http.Headers;
-using CoreVisionServiceModels.Enums;
+using System.Text;
+using System.Text.Json;
 
 namespace CoreVisionBAL.Projects.HuggingFace
-{    
+{
     public class HuggingfaceProcess : CoreVisionBalBase
     {
         #region Properties
         private readonly APIConfiguration _configuration;
         private readonly HttpClient _httpClient;
         private readonly int _port;
-        private readonly string _baseUrl;
-        private readonly string _apiKey;
+        private readonly string _huggingFaceBaseUrl;
+        private readonly string _huggingFaceApiKey;
         private readonly string _transcriptionModel;
         private readonly string _summarizeModel;
         private readonly string _imageToTextModel;
@@ -31,20 +33,25 @@ namespace CoreVisionBAL.Projects.HuggingFace
         private readonly string _languageDetectionModel;
         private readonly string _entitiesDetectionModel;
         private readonly bool _isHuggingFaceTestingMode;
+        private readonly string _cohereApiKey;
+        private readonly string _cohereBaseUrl;
+        private readonly string _cohereSummerizeModel;
+        private readonly string _cohereTranslationModel;
+        private readonly bool _isCohereTestingMode;
 
         #endregion Properties
 
         #region Constructor
-        
+
         public HuggingfaceProcess(IMapper mapper, ApiDbContext apiDbContext, APIConfiguration configuration, HttpClient httpClient)
         : base(mapper, apiDbContext)
         {
             _configuration = configuration;
             _httpClient = httpClient;
-            _baseUrl = configuration.ExternalIntegrations.HuggingFaceConfiguration.BaseUrl;
-            _apiKey = configuration.ExternalIntegrations.HuggingFaceConfiguration.ApiKey;
+            _huggingFaceBaseUrl = configuration.ExternalIntegrations.HuggingFaceConfiguration.BaseUrl;
+            _huggingFaceApiKey = configuration.ExternalIntegrations.HuggingFaceConfiguration.ApiKey;
             _transcriptionModel = configuration.ExternalIntegrations.HuggingFaceConfiguration.TranscriptionModel;
-            //_httpClient.DefaultRequestHeaders.Add($"Authorization", $"Bearer {_apiKey}"); //Hugging Face            
+            //_httpClient.DefaultRequestHeaders.Add($"Authorization", $"Bearer {_huggingFaceApiKey}"); //Hugging Face            
             _summarizeModel = configuration.ExternalIntegrations.HuggingFaceConfiguration.SummarizeModel;
             _minuteOfMeting = configuration.ExternalIntegrations.HuggingFaceConfiguration.MinuteOfMeeting;
             _translationModel = configuration.ExternalIntegrations.HuggingFaceConfiguration.TranslationModel;
@@ -54,6 +61,11 @@ namespace CoreVisionBAL.Projects.HuggingFace
             _textToImageModel = configuration.ExternalIntegrations.HuggingFaceConfiguration.TextToImageModel;
             _deepSeekModel = configuration.ExternalIntegrations.HuggingFaceConfiguration.DeepSeekModel;
             _isHuggingFaceTestingMode = configuration.ExternalIntegrations.HuggingFaceConfiguration.IsTestingMode;
+            _cohereApiKey = configuration.ExternalIntegrations.CohereConfiguration.ApiKey;
+            _cohereBaseUrl = configuration.ExternalIntegrations.CohereConfiguration.BaseUrl;
+            _cohereSummerizeModel = configuration.ExternalIntegrations.CohereConfiguration.SummarizeModel;
+            _cohereTranslationModel = configuration.ExternalIntegrations.CohereConfiguration.TranslationModel;
+            _isCohereTestingMode = configuration.ExternalIntegrations.CohereConfiguration.IsTestingMode;
         }
 
         #endregion Constructor
@@ -100,7 +112,7 @@ namespace CoreVisionBAL.Projects.HuggingFace
             requestContent.Add(new StringContent("en"), "target_lang");
 
             _httpClient.DefaultRequestHeaders.Clear();
-            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + _apiKey);
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + _huggingFaceApiKey);
 
             var retryCount = 3;
             var delay = 2000; // Delay between retries in milliseconds
@@ -109,7 +121,7 @@ namespace CoreVisionBAL.Projects.HuggingFace
             {
                 try
                 {
-                    var response = await _httpClient.PostAsync(_baseUrl + _transcriptionModel, requestContent);
+                    var response = await _httpClient.PostAsync(_huggingFaceBaseUrl + _transcriptionModel, requestContent);
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -225,9 +237,9 @@ namespace CoreVisionBAL.Projects.HuggingFace
 
             var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
             _httpClient.DefaultRequestHeaders.Clear();
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_huggingFaceApiKey}");
 
-            var response = await _httpClient.PostAsync($"{_baseUrl}{model}", content);
+            var response = await _httpClient.PostAsync($"{_huggingFaceBaseUrl}{model}", content);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -565,7 +577,7 @@ namespace CoreVisionBAL.Projects.HuggingFace
                 {
                     // Make a POST request to generate the image
                     //var response = await MakeHuggingFaceRequest(_textToImageModel, prompt);
-                    var response = await _httpClient.PostAsync($"{_baseUrl}{_textToImageModel}", httpContent); ;
+                    var response = await _httpClient.PostAsync($"{_huggingFaceBaseUrl}{_textToImageModel}", httpContent); ;
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -600,6 +612,327 @@ namespace CoreVisionBAL.Projects.HuggingFace
 
         #endregion Image Generation
 
+        #region Text Extraction
+
+        public async Task<AzureAIResponseSM> ExtractTextUsingLLamaHuggingFaceModel(ImageDataSM objSM)
+        {
+
+            if (_isHuggingFaceTestingMode)
+            {
+                var res = GetDummySummafyAIResponse();
+                return new AzureAIResponseSM()
+                {
+                    TextResponse = res.TextResponse
+                };
+            }
+
+            var _apiUrl = "https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-11B-Vision-Instruct/v1/chat/completions";
+            var mimeType = GetMimeTypeFromBase64(objSM.Base64Image);
+            var imageurl = $"data:{mimeType};base64,{objSM.Base64Image}";
+
+            var requestBody = new
+            {
+                model = _imageToTextModel,
+                messages = new[]
+                {
+                    new
+                    {
+                        role = "user",
+                        content = new object[]
+                        {
+                            //new { type = "text", text = "Generate text from the image without additional details" },
+                            new { type = "text", text = "Extract only the text from the image. If no text is present, return an empty string." },
+                            new { type = "image_url", image_url = new { url = $"{imageurl}" } }
+                        }
+                    }
+                },
+                max_tokens = 500,
+                stream = false
+            };
+
+            var jsonContent = JsonConvert.SerializeObject(requestBody);
+            var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_huggingFaceApiKey}");
+
+            int maxRetries = 3;
+            int attempts = 0;
+            string content = null;
+
+            while (attempts < maxRetries)
+            {
+                try
+                {
+                    var response = await _httpClient.PostAsync(_apiUrl, httpContent);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var res = await response.Content.ReadAsStringAsync();
+                        var json = JsonDocument.Parse(res);
+                        content = json.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
+
+                        if (!string.IsNullOrEmpty(content))
+                        {
+                            return new AzureAIResponseSM { TextResponse = content };
+                        }
+                        throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,
+                            $"The response was empty. Please try again later.",
+                            $"The response was empty. Please try again later.");
+                    }
+                    else
+                    {
+                        var errorDetails = await response.Content.ReadAsStringAsync();
+                        Console.WriteLine($"[Attempt {attempts + 1}] Error: {errorDetails}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Attempt {attempts + 1}] Error: {ex.Message}");
+                }
+
+                attempts++;
+                if (attempts < maxRetries)
+                {
+                    Console.WriteLine($"Retrying in 2 seconds... (Attempt {attempts + 1} of {maxRetries})");
+                    await Task.Delay(2000);
+                }
+            }
+
+            throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,
+                "The request took longer than expected and timed out. Please try again in a moment.",
+                $"The request took longer than expected and timed out. Please try again in a moment.");
+        }
+
+
+        public static string GetMimeTypeFromBase64(string base64String)
+        {
+            byte[] imageBytes = Convert.FromBase64String(base64String);
+
+            if (imageBytes.Length < 4)
+                return "unknown";
+
+            if (imageBytes[0] == 0xFF && imageBytes[1] == 0xD8 && imageBytes[2] == 0xFF)
+                return "image/jpeg"; // JPEG
+
+            if (imageBytes[0] == 0x89 && imageBytes[1] == 0x50 && imageBytes[2] == 0x4E && imageBytes[3] == 0x47)
+                return "image/png"; // PNG
+
+            if (imageBytes[0] == 0x47 && imageBytes[1] == 0x49 && imageBytes[2] == 0x46)
+                return "image/gif"; // GIF
+
+            if (imageBytes[0] == 0x42 && imageBytes[1] == 0x4D)
+                return "image/bmp"; // BMP
+
+            if (imageBytes[0] == 0x52 && imageBytes[1] == 0x49 && imageBytes[2] == 0x46 && imageBytes[3] == 0x46)
+                return "image/webp"; // WEBP (RIFF-based)
+
+            if ((imageBytes[0] == 0x49 && imageBytes[1] == 0x49 && imageBytes[2] == 0x2A && imageBytes[3] == 0x00) ||
+                (imageBytes[0] == 0x4D && imageBytes[1] == 0x4D && imageBytes[2] == 0x00 && imageBytes[3] == 0x2A))
+                return "image/tiff"; // TIFF (Little-endian or Big-endian)
+
+            if (imageBytes[0] == 0x00 && imageBytes[1] == 0x00 && imageBytes[2] == 0x01 && imageBytes[3] == 0x00)
+                return "image/x-icon"; // ICO (Windows Icon)
+
+            // Check for SVG by analyzing first few characters (SVG files are XML-based)
+            string decodedText = Encoding.UTF8.GetString(imageBytes);
+            if (decodedText.StartsWith("<svg", StringComparison.OrdinalIgnoreCase))
+                return "image/svg+xml"; // SVG
+
+            return "unknown"; // Default if not recognized
+        }
+
+        #endregion Text Extraction
+
+        #region Cohere AI methods
+
+        #region Summary Short/Descriptive
+        public async Task<HuggingFaceResponseSM> GenerateSummaryUsingCohereAsync(HuggingFaceRequestSM objSM, bool isShort)
+        {
+            if (_isCohereTestingMode)
+            {
+                var res = GetCohereDummyResponse();
+                return new HuggingFaceResponseSM()
+                {
+                    TextResponse = res.Response
+                };
+            }
+            var summaryType = "";
+            if (isShort == true)
+            {
+                summaryType = "short";
+            }
+            else
+            {
+                summaryType = "descriptive";
+            }
+            var apiUrl = _cohereBaseUrl;
+            var key = _cohereApiKey;
+
+            var prompt = $"Generate a {summaryType} summary for the following: ";
+            var requestBody = new
+            {
+                model = _cohereSummerizeModel,
+                messages = new[] {
+                    new {
+                        role = "user",
+                        content = prompt + objSM.InputRequest
+                    }
+                }
+            };
+
+            var jsonContent = JsonConvert.SerializeObject(requestBody);
+            var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            // Set headers
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {key}");
+
+            int maxRetries = 3;
+            int attempt = 0;
+            while (attempt < maxRetries)
+            {
+
+                try
+                {
+                    // Make the request
+                    var response = await _httpClient.PostAsync(apiUrl, httpContent);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseContent = await response.Content.ReadAsStringAsync();
+                        var responseJson = JsonConvert.DeserializeObject<dynamic>(responseContent);
+
+                        if (responseJson?.message?.content != null && responseJson.message.content.Count > 0)
+                        {
+                            var text = responseJson.message.content[0].text.ToString();
+                            return new HuggingFaceResponseSM()
+                            {
+                                TextResponse = text
+                            };
+                        }
+                        else
+                        {
+                            // Return null if the response doesn't contain the expected content
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Error communicating with Cohere API.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    attempt++;
+                    if (attempt >= maxRetries)
+                    {
+                        throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,
+                            "The request took longer than expected and timed out. Please try again in a moment.",
+                            $"The request took longer than expected and timed out. Please try again in a moment.");
+                    }
+
+                    await Task.Delay(2000); // Delay for 2 seconds before retrying
+                }
+            }
+            throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,
+                "The request took longer than expected and timed out. Please try again in a moment.",
+                $"The request took longer than expected and timed out. Please try again in a moment.");
+        }
+
+        #endregion Summary Short/Descriptive
+
+        #region Translate Using Cohere
+
+        public async Task<HuggingFaceResponseSM> TranslateTextUsingCohereAsync(TranslationRequestSM objSM)
+        {
+            if (_isCohereTestingMode)
+            {
+                var res = GetCohereDummyResponse();
+                return new HuggingFaceResponseSM()
+                {
+                    TextResponse = res.Response
+                };
+            }
+
+            var apiUrl = _cohereBaseUrl;
+            var key = _cohereApiKey;
+            var prompt = $"Translate following in {objSM.Language} language: ";
+            var requestBody = new
+            {
+                model = _cohereTranslationModel,
+                messages = new[] {
+                    new {
+                        role = "user",
+                        content = prompt + objSM.Text
+                    }
+                }
+            };
+
+            var jsonContent = JsonConvert.SerializeObject(requestBody);
+            var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            // Set headers
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {key}");
+
+            int maxRetries = 3;
+            int attempt = 0;
+            while (attempt < maxRetries)
+            {
+                try
+                {
+                    // Make the request
+                    var response = await _httpClient.PostAsync(apiUrl, httpContent);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseContent = await response.Content.ReadAsStringAsync();
+                        var responseJson = JsonConvert.DeserializeObject<dynamic>(responseContent);
+
+                        if (responseJson?.message?.content != null && responseJson.message.content.Count > 0)
+                        {
+                            var text = responseJson.message.content[0].text.ToString();
+                            return new HuggingFaceResponseSM()
+                            {
+                                TextResponse = text
+                            };
+                        }
+                        else
+                        {
+                            // Return null if the response doesn't contain the expected content
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Error communicating with Cohere API.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    attempt++;
+                    if (attempt >= maxRetries)
+                    {
+                        throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,
+                            "The request took longer than expected and timed out. Please try again in a moment.",
+                            $"The request took longer than expected and timed out. Please try again in a moment.");
+                    }
+
+                    // Optionally log the exception or add a delay before retrying
+                    await Task.Delay(2000); // Delay for 2 seconds before retrying
+                }
+            }
+            throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,
+                "The request took longer than expected and timed out. Please try again in a moment.",
+                $"The request took longer than expected and timed out. Please try again in a moment.");
+        }
+
+        #endregion Translate Using Cohere
+
+        #endregion Cohere AI methods
+
         #region Dummy Response
 
         public AudioTranscriptionResponseSM GetDummyResponse()
@@ -618,6 +951,17 @@ namespace CoreVisionBAL.Projects.HuggingFace
             {
                 TextResponse = "This is a dummy response for your input, designed to facilitate the integration of text extraction, summarization, and translation functionalities. " +
                                "It serves as a placeholder while the actual Azure AI integration is being tested, ensuring the system functions smoothly. " +
+                               "This response will allow you to test the flow and connectivity of the integration without depending on real API calls or data."
+            };
+            return res;
+        }
+
+        public AudioTranscriptionResponseSM GetCohereDummyResponse()
+        {
+            var res = new AudioTranscriptionResponseSM()
+            {
+                Response = "This is a dummy response for your input, designed to facilitate the integration of text extraction, summarization, and translation functionalities. " +
+                               "It serves as a placeholder while the actual Cohere AI integration is being tested, ensuring the system functions smoothly. " +
                                "This response will allow you to test the flow and connectivity of the integration without depending on real API calls or data."
             };
             return res;

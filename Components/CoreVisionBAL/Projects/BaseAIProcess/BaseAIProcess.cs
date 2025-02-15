@@ -24,9 +24,135 @@ namespace CoreVisionBAL.Projects.BaseAIProcess
             _configuration = configuration;
             _azureAIProcess = azureAIProcess;
             _huggingfaceProcess = huggingfaceProcess;
-            _azureProcessingModel = configuration.ExternalIntegrations.AzureConfiguration.AzureProcessingModel;
-            _huggingfaceProcessingModel = configuration.ExternalIntegrations.HuggingFaceConfiguration.HuggingfaceProcessingModel;
+            _azureProcessingModel = configuration.AzureProcessingModel;
+            _huggingfaceProcessingModel = configuration.HuggingFaceProcessingModel;
         }
+
+        #region AzureAI Base Methods        
+
+        #region Text Extraxtion Base Model
+
+        public async Task<AzureAIResponseSM> BaseMethodForTextExtraction(ImageDataSM objSM)
+        {
+            if (string.IsNullOrWhiteSpace(_azureProcessingModel))
+            {
+                throw new CoreVisionException(
+                    ApiErrorTypeSM.Fatal_Log,
+                    "The AI model used for text extraction is not specified.",
+                    "Please specify a valid AI model for text extraction."
+                );
+            }
+
+            switch (_azureProcessingModel)
+            {
+                case "AzureAI":
+                    return await _azureAIProcess.ExtractTextFromBase64ImageAsync(objSM);
+                case "HuggingFaceAI":
+                    return await _huggingfaceProcess.ExtractTextUsingLLamaHuggingFaceModel(objSM);
+                case "CohereAI":
+                    return await _huggingfaceProcess.ExtractTextUsingLLamaHuggingFaceModel(objSM);
+
+
+                default:
+                    throw new CoreVisionException(
+                        ApiErrorTypeSM.Fatal_Log,
+                        "Unsupported AI model",
+                        $"The AI model '{_azureProcessingModel}' is not supported."
+                    );
+            }
+        }
+
+        public async Task<AzureAIResponseSM> BaseMethodForTextExtractionFromPdfImages(ImageDataSM objSM)
+        {
+            if (string.IsNullOrWhiteSpace(_azureProcessingModel))
+            {
+                throw new CoreVisionException(
+                    ApiErrorTypeSM.Fatal_Log,
+                    "The AI model used for summarization is not specified.",
+                    "Please specify a valid AI model for summarization."
+                );
+            }
+
+            switch (_azureProcessingModel)
+            {
+                case "AzureAI":
+                    return await _azureAIProcess.ExtractTextFromBase64ImageAsync(objSM);
+                case "HuggingFaceAI":
+                    return await _huggingfaceProcess.ExtractTextUsingLLamaHuggingFaceModel(objSM);
+                case "CohereAI":
+                    return await _huggingfaceProcess.ExtractTextUsingLLamaHuggingFaceModel(objSM);
+
+
+                default:
+                    throw new CoreVisionException(
+                        ApiErrorTypeSM.Fatal_Log,
+                        "Unsupported AI model",
+                        $"The AI model '{_azureProcessingModel}' is not supported."
+                    );
+            }
+        }
+
+        #endregion Text Extraxtion Base Model
+
+        #region Text Translation Base Method
+
+        public async Task<AzureAIResponseSM> BaseMethodForTextTranslation(TranslationRequestSM objSM)
+        {
+            if (string.IsNullOrWhiteSpace(_azureProcessingModel))
+            {
+                throw new CoreVisionException(
+                    ApiErrorTypeSM.Fatal_Log,
+                    "The AI model used for translation is not specified.",
+                    "Please specify a valid AI model for translation."
+                );
+            }
+
+            switch (_azureProcessingModel)
+            {
+                case "AzureAI":
+                    return await _azureAIProcess.TranslateTextAsync(objSM);
+                case "HuggingFaceAI":
+                    var input = new TranslationRequestSM()
+                    {
+                        Text = objSM.Text,
+                        Language = objSM.Language
+                    };
+                    var res = await _huggingfaceProcess.TranslateTextAsync(input);
+                    if (res != null)
+                    {
+                        return new AzureAIResponseSM()
+                        {
+                            TextResponse = res.TextResponse
+                        };
+                    }
+                    return null;
+
+                case "CohereAI":
+                    var cohereInput = new TranslationRequestSM()
+                    {
+                        Text = objSM.Text,
+                        Language = objSM.Language
+                    };
+                    var cohereRes = await _huggingfaceProcess.TranslateTextUsingCohereAsync(cohereInput);
+                    if (cohereRes != null)
+                    {
+                        return new AzureAIResponseSM()
+                        {
+                            TextResponse = cohereRes.TextResponse
+                        };
+                    }
+                    return null;
+
+                default:
+                    throw new CoreVisionException(
+                        ApiErrorTypeSM.Fatal_Log,
+                        "Unsupported AI model",
+                        $"The AI model '{_azureProcessingModel}' is not supported."
+                    );
+            }
+        }
+
+        #endregion Text Translation Base Method
 
         #region Text Summerization Base Method
 
@@ -45,17 +171,33 @@ namespace CoreVisionBAL.Projects.BaseAIProcess
             {
                 case "AzureAI":
                     return await _azureAIProcess.TextSummarizeAsync(objSM);
-                case "HuggingFaceAI":
-                    var input = new HuggingFaceRequestSM()
+
+                case "CohereAI":
+                    var cohereInput = new HuggingFaceRequestSM()
                     {
                         InputRequest = objSM.TextInput
                     };
-                    var res = await _huggingfaceProcess.SummarizeTextAsync(input);
-                    if (res != null)
+                    var cohereRes = await _huggingfaceProcess.GenerateSummaryUsingCohereAsync(cohereInput, true);
+                    if (cohereRes != null)
                     {
                         return new AzureAIResponseSM()
                         {
-                            TextResponse = res.Response
+                            TextResponse = cohereRes.TextResponse
+                        };
+                    }
+                    return null;
+
+                case "HuggingFaceAI":
+                    var huggingFaceInput = new HuggingFaceRequestSM()
+                    {
+                        InputRequest = objSM.TextInput
+                    };
+                    var huggingFaceRes = await _huggingfaceProcess.GenerateSummaryUsingCohereAsync(huggingFaceInput, true);
+                    if (huggingFaceRes != null)
+                    {
+                        return new AzureAIResponseSM()
+                        {
+                            TextResponse = huggingFaceRes.TextResponse
                         };
                     }
                     return null;
@@ -85,93 +227,27 @@ namespace CoreVisionBAL.Projects.BaseAIProcess
             {
                 case "AzureAI":
                     return await _azureAIProcess.ExtensiveSummarizeAsync(objSM);
+
+                case "CohereAI":
+                    var cohereInput = new HuggingFaceRequestSM()
+                    {
+                        InputRequest = objSM.TextInput
+                    };
+                    var cohereRes = await _huggingfaceProcess.GenerateSummaryUsingCohereAsync(cohereInput, false);
+                    if (cohereRes != null)
+                    {
+                        return new AzureAIResponseSM()
+                        {
+                            TextResponse = cohereRes.TextResponse
+                        };
+                    }
+                    return null;
                 case "HuggingFaceAI":
                     var input = new HuggingFaceRequestSM()
                     {
                         InputRequest = objSM.TextInput
                     };
-                    var res = await _huggingfaceProcess.SummarizeTextAsync(input);
-                    if (res != null)
-                    {
-                        return new AzureAIResponseSM()
-                        {
-                            TextResponse = res.Response
-                        };
-                    }
-                    return null;
-
-                default:
-                    throw new CoreVisionException(
-                        ApiErrorTypeSM.Fatal_Log,
-                        "Unsupported AI model",
-                        $"The AI model '{_azureProcessingModel}' is not supported."
-                    );
-            }
-        }
-
-
-        #endregion Text Summerization Base Method
-
-        #region Text Extraxtion Base Model
-
-        public async Task<AzureAIResponseSM> BaseMethodForTextExtraction(ImageDataSM objSM)
-        {
-            if (string.IsNullOrWhiteSpace(_azureProcessingModel))
-            {
-                throw new CoreVisionException(
-                    ApiErrorTypeSM.Fatal_Log,
-                    "The AI model used for summarization is not specified.",
-                    "Please specify a valid AI model for summarization."
-                );
-            }
-
-            switch (_azureProcessingModel)
-            {
-                case "AzureAI":
-                    return await _azureAIProcess.ExtractTextFromBase64ImageAsync(objSM);
-                case "HuggingFaceAI":
-                    var res = await _huggingfaceProcess.ExtractTextFromImageAsync(objSM);
-                    return new AzureAIResponseSM()
-                    {
-                        TextResponse = res.TextResponse
-                    };
-
-
-                default:
-                    throw new CoreVisionException(
-                        ApiErrorTypeSM.Fatal_Log,
-                        "Unsupported AI model",
-                        $"The AI model '{_azureProcessingModel}' is not supported."
-                    );
-            }
-        }
-
-        #endregion Text Extraxtion Base Model
-
-        #region Text Translation Base Method
-
-        public async Task<AzureAIResponseSM> BaseMethodForTextTranslation(TranslationRequestSM objSM)
-        {
-            if (string.IsNullOrWhiteSpace(_azureProcessingModel))
-            {
-                throw new CoreVisionException(
-                    ApiErrorTypeSM.Fatal_Log,
-                    "The AI model used for summarization is not specified.",
-                    "Please specify a valid AI model for summarization."
-                );
-            }
-
-            switch (_azureProcessingModel)
-            {
-                case "AzureAI":
-                    return await _azureAIProcess.TranslateTextAsync(objSM);
-                case "HuggingFaceAI":
-                    var input = new TranslationRequestSM()
-                    {
-                        Text = objSM.Text,
-                        Language = objSM.Language
-                    };
-                    var res = await _huggingfaceProcess.TranslateTextAsync(input);
+                    var res = await _huggingfaceProcess.GenerateSummaryUsingCohereAsync(input, false);
                     if (res != null)
                     {
                         return new AzureAIResponseSM()
@@ -190,6 +266,14 @@ namespace CoreVisionBAL.Projects.BaseAIProcess
             }
         }
 
-        #endregion Text Translation Base Method
+
+        #endregion Text Summerization Base Method
+
+        #endregion AzureAI Base Methods
+
+        #region HuggingFace AI Base Methods
+
+
+        #endregion Hugging Face AI Base Methods        
     }
 }

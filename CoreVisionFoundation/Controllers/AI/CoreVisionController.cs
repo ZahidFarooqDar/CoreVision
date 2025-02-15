@@ -53,7 +53,7 @@ namespace CoreVisionFoundation.Controllers.AI
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-            var resp = await _azureAIProcess.ExtractTextFromBase64ImageAsync(innerReq);
+            var resp = await _baseAIProcess.BaseMethodForTextExtraction(innerReq);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
 
         }
