@@ -33,11 +33,8 @@ namespace CoreVisionDomainModels.AppUser.Login
         [MaxLength(50)]
         [EmailAddress]
         public string EmailId { get; set; }
-        [StringLength(255, MinimumLength = 0)]
-        [DataType(DataType.Password)]
-        [Required]
-        //[JsonIgnore]
-        public string PasswordHash { get; set; }
+        
+        public string? PasswordHash { get; set; }
         [DataType(DataType.PhoneNumber)]
         [DefaultValue(null)]
 

@@ -66,7 +66,20 @@ namespace CoreVisionFoundation.Controllers.Token
             }
             var payload = await GoogleJsonWebSignature.ValidateAsync(idToken);
             var existingClientUser = await _clientUserProcess.GetClientUserByEmail(payload.Email);
-
+            string base64Picture;
+            try
+            {
+                using (var httpClient = _httpClientFactory.CreateClient())
+                {
+                    var imageBytes = await httpClient.GetByteArrayAsync(payload.Picture);
+                    base64Picture = Convert.ToBase64String(imageBytes);
+                }
+            }
+            catch (Exception ex)
+            {
+                base64Picture = null;
+            }
+           
             if (existingClientUser != null)
             {
                 var externalGoogleUser = new ExternalUserSM()
@@ -78,8 +91,11 @@ namespace CoreVisionFoundation.Controllers.Token
                 // confirm email as its from its google account
                 if (!existingClientUser.IsEmailConfirmed)
                 {
-                    existingClientUser.IsEmailConfirmed = true;
-                    existingClientUser = await _clientUserProcess.UpdateClientUser(existingClientUser.Id, existingClientUser);
+                    if (existingClientUser.ProfilePicturePath.IsNullOrEmpty())
+                    {
+                        existingClientUser.ProfilePicturePath = base64Picture;
+                    }
+                    existingClientUser = await _clientUserProcess.UpdateClientUser(existingClientUser.Id, existingClientUser,true);
                 }
                 var externalUser = await _externalUserProcess.GetExternalUserByClientUserIdandTypeAsync(existingClientUser.Id, ExternalUserTypeSM.Google);
                 if (externalUser == null)
@@ -91,12 +107,7 @@ namespace CoreVisionFoundation.Controllers.Token
                 else // error in adding external user
                     throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Internal error occured, try again after sometime. If problem persists, contact support.", $"Error in adding external user with id token {idToken}");
             }
-            string base64Picture;
-            using (var httpClient = _httpClientFactory.CreateClient())
-            {
-                var imageBytes = await httpClient.GetByteArrayAsync(payload.Picture);
-                base64Picture = Convert.ToBase64String(imageBytes);
-            }
+           
             var newUser = new ClientUserSM()
             {
                 LoginId = payload.Email,
@@ -132,6 +143,19 @@ namespace CoreVisionFoundation.Controllers.Token
             }
             var payload = await GoogleJsonWebSignature.ValidateAsync(idToken);
             var existingClientUser = await _clientUserProcess.GetClientUserByEmail(payload.Email);
+            string base64Picture;
+            try
+            {
+                using (var httpClient = _httpClientFactory.CreateClient())
+                {
+                    var imageBytes = await httpClient.GetByteArrayAsync(payload.Picture);
+                    base64Picture = Convert.ToBase64String(imageBytes);
+                }
+            }
+            catch (Exception ex)
+            {
+                base64Picture = null;
+            }
 
             if (existingClientUser != null)
             {
@@ -144,7 +168,10 @@ namespace CoreVisionFoundation.Controllers.Token
                 // confirm email as its from its google account
                 if (!existingClientUser.IsEmailConfirmed)
                 {
-                    existingClientUser.IsEmailConfirmed = true;
+                    if (existingClientUser.ProfilePicturePath.IsNullOrEmpty())
+                    {
+                        existingClientUser.ProfilePicturePath = base64Picture;
+                    }
                     existingClientUser = await _clientUserProcess.UpdateClientUser(existingClientUser.Id, existingClientUser);
                 }
                 var externalUser = await _externalUserProcess.GetExternalUserByClientUserIdandTypeAsync(existingClientUser.Id, ExternalUserTypeSM.Google);
@@ -159,12 +186,7 @@ namespace CoreVisionFoundation.Controllers.Token
                 else // error in adding external user
                     throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Internal error occured, try again after sometime. If problem persists, contact support.", $"Error in adding external user with id token {idToken}");
             }
-            string base64Picture;
-            using (var httpClient = _httpClientFactory.CreateClient())
-            {
-                var imageBytes = await httpClient.GetByteArrayAsync(payload.Picture);
-                base64Picture = Convert.ToBase64String(imageBytes);
-            }
+            
             var newUser = new ClientUserSM()
             {
                 LoginId = payload.Email,
@@ -229,6 +251,20 @@ namespace CoreVisionFoundation.Controllers.Token
 
             var existingClientUser = await _clientUserProcess.GetClientUserByEmail(emailId);
 
+            string base64Picture;
+            try
+            {
+                using (var httpClients = _httpClientFactory.CreateClient())
+                {
+                    var imageBytes = await httpClient.GetByteArrayAsync(pictureUrl);
+                    base64Picture = Convert.ToBase64String(imageBytes);
+                }
+            }
+            catch (Exception ex)
+            {
+                base64Picture = null;
+            }
+
             if (existingClientUser != null)
             {
                 var externalGoogleUser = new ExternalUserSM()
@@ -240,7 +276,10 @@ namespace CoreVisionFoundation.Controllers.Token
                 // confirm email as its from its google account
                 if (!existingClientUser.IsEmailConfirmed)
                 {
-                    existingClientUser.IsEmailConfirmed = true;
+                    if (existingClientUser.ProfilePicturePath.IsNullOrEmpty())
+                    {
+                        existingClientUser.ProfilePicturePath = base64Picture;
+                    }
                     existingClientUser = await _clientUserProcess.UpdateClientUser(existingClientUser.Id, existingClientUser);
                 }
                 var externalUser = await _externalUserProcess.GetExternalUserByClientUserIdandTypeAsync(existingClientUser.Id, ExternalUserTypeSM.Google);
@@ -254,12 +293,7 @@ namespace CoreVisionFoundation.Controllers.Token
                 else // error in adding external user
                     throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Internal error occured, try again after sometime. If problem persists, contact support.", $"Error in adding external user with id token {idToken}");
             }
-            string base64Picture;
-            using (var httpClients = _httpClientFactory.CreateClient())
-            {
-                var imageBytes = await httpClients.GetByteArrayAsync(pictureUrl);
-                base64Picture = Convert.ToBase64String(imageBytes);
-            }
+            
             var newUser = new ClientUserSM()
             {
                 LoginId = emailId,
@@ -318,7 +352,19 @@ namespace CoreVisionFoundation.Controllers.Token
             }
 
             var existingClientUser = await _clientUserProcess.GetClientUserByEmail(emailId);
-
+            string base64Picture;
+            try
+            {
+                using (var httpClients = _httpClientFactory.CreateClient())
+                {
+                    var imageBytes = await httpClient.GetByteArrayAsync(pictureUrl);
+                    base64Picture = Convert.ToBase64String(imageBytes);
+                }
+            }
+            catch (Exception ex)
+            {
+                base64Picture = null;
+            }
             if (existingClientUser != null)
             {
                 var externalGoogleUser = new ExternalUserSM()
@@ -330,7 +376,10 @@ namespace CoreVisionFoundation.Controllers.Token
                 // confirm email as its from its google account
                 if (!existingClientUser.IsEmailConfirmed)
                 {
-                    existingClientUser.IsEmailConfirmed = true;
+                    if (existingClientUser.ProfilePicturePath.IsNullOrEmpty())
+                    {
+                        existingClientUser.ProfilePicturePath = base64Picture;
+                    }
                     existingClientUser = await _clientUserProcess.UpdateClientUser(existingClientUser.Id, existingClientUser);
                 }
                 var externalUser = await _externalUserProcess.GetExternalUserByClientUserIdandTypeAsync(existingClientUser.Id, ExternalUserTypeSM.Facebook);
@@ -345,12 +394,7 @@ namespace CoreVisionFoundation.Controllers.Token
                 else // error in adding external user
                     throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Internal error occured, try again after sometime. If problem persists, contact support.", $"Error in adding external user with id token {idToken}");
             }
-            string base64Picture;
-            using (var httpClients = _httpClientFactory.CreateClient())
-            {
-                var imageBytes = await httpClient.GetByteArrayAsync(pictureUrl);
-                base64Picture = Convert.ToBase64String(imageBytes);
-            }
+            
             var newUser = new ClientUserSM()
             {
                 LoginId = emailId,

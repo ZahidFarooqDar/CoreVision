@@ -119,7 +119,14 @@ namespace CoreVisionBAL.AppUsers
         {
             ClientUserDM? clientUserDM = await _apiDbContext.ClientUsers.AsNoTracking().FirstOrDefaultAsync(x => x.EmailId == email);
             if (clientUserDM != null)
-                return _mapper.Map<ClientUserSM>(clientUserDM);
+            {
+                var sm = _mapper.Map<ClientUserSM>(clientUserDM);
+                if (!sm.ProfilePicturePath.IsNullOrEmpty())
+                {
+                    sm.ProfilePicturePath = await ConvertToBase64(sm.ProfilePicturePath);
+                }
+                return sm;
+            }
             return null;
         }
 
@@ -356,7 +363,7 @@ namespace CoreVisionBAL.AppUsers
         /// </returns>
         /// <exception cref="CoreVisionException"></exception>
 
-        public async Task<ClientUserSM> UpdateClientUser(int userId, ClientUserSM objSM)
+        public async Task<ClientUserSM> UpdateClientUser(int userId, ClientUserSM objSM,bool isSocialMediaUpdation = false)
         {
             if (userId == null)
             {
@@ -419,9 +426,16 @@ namespace CoreVisionBAL.AppUsers
                     objSM.DateOfBirth = objDM.DateOfBirth;
                 }
                 //Todo: Check how to handle LoginStatus, IsEmailConfirmed and IsPhoneNumberVerified
-                /*objSM.LoginStatus = (LoginStatusSM)objDM.LoginStatus;
-                objSM.IsEmailConfirmed = objDM.IsEmailConfirmed;
-                objSM.IsPhoneNumberConfirmed = objDM.IsPhoneNumberConfirmed;*/
+                if(isSocialMediaUpdation == true)
+                {
+                    objSM.IsEmailConfirmed = true;
+                }
+                else
+                {
+                    objSM.IsEmailConfirmed = objDM.IsEmailConfirmed;
+                }
+                objSM.LoginStatus = (LoginStatusSM)objDM.LoginStatus;
+                objSM.IsPhoneNumberConfirmed = objDM.IsPhoneNumberConfirmed;
                 objSM.RoleType = (RoleTypeSM)objDM.RoleType;
 
                 var smProperties = objSM.GetType().GetProperties();
