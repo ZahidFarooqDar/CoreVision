@@ -172,7 +172,7 @@ namespace CoreVisionFoundation.Controllers.Token
                     {
                         existingClientUser.ProfilePicturePath = base64Picture;
                     }
-                    existingClientUser = await _clientUserProcess.UpdateClientUser(existingClientUser.Id, existingClientUser);
+                    existingClientUser = await _clientUserProcess.UpdateClientUser(existingClientUser.Id, existingClientUser,true);
                 }
                 var externalUser = await _externalUserProcess.GetExternalUserByClientUserIdandTypeAsync(existingClientUser.Id, ExternalUserTypeSM.Google);
                 if (externalUser == null)
@@ -280,7 +280,7 @@ namespace CoreVisionFoundation.Controllers.Token
                     {
                         existingClientUser.ProfilePicturePath = base64Picture;
                     }
-                    existingClientUser = await _clientUserProcess.UpdateClientUser(existingClientUser.Id, existingClientUser);
+                    existingClientUser = await _clientUserProcess.UpdateClientUser(existingClientUser.Id, existingClientUser,true);
                 }
                 var externalUser = await _externalUserProcess.GetExternalUserByClientUserIdandTypeAsync(existingClientUser.Id, ExternalUserTypeSM.Google);
                 if (externalUser == null)
@@ -367,7 +367,7 @@ namespace CoreVisionFoundation.Controllers.Token
             }
             if (existingClientUser != null)
             {
-                var externalGoogleUser = new ExternalUserSM()
+                var externalFbUser = new ExternalUserSM()
                 {
                     ClientUserId = existingClientUser.Id,
                     RefreshToken = idToken,
@@ -380,17 +380,16 @@ namespace CoreVisionFoundation.Controllers.Token
                     {
                         existingClientUser.ProfilePicturePath = base64Picture;
                     }
-                    existingClientUser = await _clientUserProcess.UpdateClientUser(existingClientUser.Id, existingClientUser);
+                    existingClientUser = await _clientUserProcess.UpdateClientUser(existingClientUser.Id, existingClientUser, true);
                 }
                 var externalUser = await _externalUserProcess.GetExternalUserByClientUserIdandTypeAsync(existingClientUser.Id, ExternalUserTypeSM.Facebook);
                 if (externalUser == null)
                 {
-                    externalUser = await _externalUserProcess.AddExternalUser(externalGoogleUser);
+                    externalUser = await _externalUserProcess.AddExternalUser(externalFbUser);
                 }
                 if (externalUser != null) // external user added / is already available
                                           // generate token
                     return await CreateTokenForUser(existingClientUser, companyCode);
-                //throw new CodeVisionException(ApiErrorTypeSM.Success_NoLog, "Google Login Details Already Exist...Sign in Instead", "Google Login Details Already Exist. Please use login.");
                 else // error in adding external user
                     throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Internal error occured, try again after sometime. If problem persists, contact support.", $"Error in adding external user with id token {idToken}");
             }

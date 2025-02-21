@@ -5,6 +5,7 @@ using CoreVisionDomainModels.AppUser;
 using System;
 using CoreVisionDomainModels.Enums;
 using CoreVisionDomainModels.v1.General.ScanCodes;
+using CoreVisionDomainModels.v1.General.License;
 
 namespace CoreVisionDAL.Context
 {
@@ -27,6 +28,9 @@ namespace CoreVisionDAL.Context
                 SeedDummySystemAdminUsers(apiDb, defaultCreatedBy, defaultUpdatedBy, encryptorFunc);
                 SeedDummyClientAdminUsers(apiDb, defaultCreatedBy, defaultUpdatedBy, encryptorFunc);
                 SeedScanCodesAdminUsers(apiDb, defaultCreatedBy);
+                SeedLicenseTypes(apiDb, defaultCreatedBy);
+                SeedFeatures(apiDb, defaultCreatedBy);
+                SeedUserLicenseDetails(apiDb, defaultCreatedBy);
 
                 return true;
             }
@@ -76,7 +80,7 @@ namespace CoreVisionDAL.Context
                 LoginStatus = LoginStatusDM.Enabled,
                 PhoneNumber = "1234567890",
                 IsPhoneNumberConfirmed = true,
-                PasswordHash = encryptorFunc("pass123"),
+                PasswordHash = encryptorFunc("corevisionsuper1"),
                 ProfilePicturePath = "wwwroot/content/loginusers/profile/profile.jpg",
                 CreatedBy = defaultCreatedBy,
                 CreatedOnUTC = DateTime.UtcNow
@@ -101,7 +105,7 @@ namespace CoreVisionDAL.Context
                 IsEmailConfirmed = true,
                 LoginStatus = LoginStatusDM.Enabled,
                 IsPhoneNumberConfirmed = true,
-                PasswordHash = encryptorFunc("pass123"),
+                PasswordHash = encryptorFunc("corevisionsystemadmin1"),
                 CreatedBy = defaultCreatedBy,
                 CreatedOnUTC = DateTime.UtcNow
             };
@@ -116,11 +120,11 @@ namespace CoreVisionDAL.Context
             {
                 ClientCompanyDetailId = 1,
                 RoleType = RoleTypeDM.ClientAdmin,
-                FirstName = "Company",
+                FirstName = "Client",
                 MiddleName = "Admin",
-                EmailId = "companyadmin1@email.com",
+                EmailId = "companyadmin@email.com",
                 LastName = "One",
-                LoginId = "companyadmin1",
+                LoginId = "clientadmin1",
                 IsEmailConfirmed = true,
                 PhoneNumber = "1234567890",
                 LoginStatus = LoginStatusDM.Enabled,
@@ -130,8 +134,26 @@ namespace CoreVisionDAL.Context
                 CreatedBy = defaultCreatedBy,
                 CreatedOnUTC = DateTime.UtcNow
             };
-            
-            apiDb.ClientUsers.Add(cAdmin1);
+            var cAdmin2 = new ClientUserDM()
+            {
+                ClientCompanyDetailId = 1,
+                RoleType = RoleTypeDM.ClientAdmin,
+                FirstName = "Client2",
+                MiddleName = "Admin",
+                EmailId = "companyadmin@email.com",
+                LastName = "Two",
+                LoginId = "clientadmin2",
+                IsEmailConfirmed = true,
+                PhoneNumber = "1234567890",
+                LoginStatus = LoginStatusDM.Enabled,
+                IsPhoneNumberConfirmed = true,
+                PasswordHash = encryptorFunc("pass123"),
+                ProfilePicturePath = "wwwroot/content/loginusers/profile/profile.jpg",
+                CreatedBy = defaultCreatedBy,
+                CreatedOnUTC = DateTime.UtcNow
+            };
+
+            apiDb.ClientUsers.AddRange(cAdmin1,cAdmin2);
             apiDb.SaveChanges();
             
         }
@@ -334,6 +356,194 @@ namespace CoreVisionDAL.Context
         }
 
         #endregion Seed QRCode Data
+
+        #region Seed License Related Data
+
+        #region Features
+        private void SeedFeatures(ApiDbContext apiDb, string defaultCreatedBy)
+        {
+
+            var features = new List<FeatureDM>()
+            {
+                new FeatureDM()
+                {
+                    Title = "Text Extraction",
+                    Description = "Extraction of text from Images ",
+                    Price = 50,
+                    FeatureCode = "CVTE-2025",
+                    UsageCount = 1,
+                    isFeatureCountable = true,
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddDays(30),
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow,
+                },
+                new FeatureDM()
+                {
+                    Title = "Text Summerization",
+                    Description = "Summerize text",
+                    Price = 50,
+                    FeatureCode = "CVSUM-2025",
+                    UsageCount = 1,
+                    isFeatureCountable = true,
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddDays(30),
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow,
+                },
+                new FeatureDM()
+                {
+                    Title = "Text Translation",
+                    Description = "Translate text",
+                    Price = 50,
+                    FeatureCode = "CVTT-2025",
+                    UsageCount = 0,
+                    isFeatureCountable = false,
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddDays(30),
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow,
+                },
+                new FeatureDM()
+                {
+                    Title = "Audio Transcription",
+                    Description = "Audio Transcription",
+                    Price = 50,
+                    FeatureCode = "CVAUD-2025",
+                    UsageCount = 0,
+                    isFeatureCountable = false,
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddDays(30),
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow,
+                },
+                new FeatureDM()
+                {
+                    Title = "Audio Summerization",
+                    Description = "Audio Summerization",
+                    Price = 50,
+                    FeatureCode = "CVAUDSUM-2025",
+                    UsageCount = 0,
+                    isFeatureCountable = false,
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddDays(30),
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow,
+                }
+            };
+
+            apiDb.Features.AddRange(features);
+            apiDb.SaveChanges();
+        }
+
+        #endregion Features
+
+        #region License
+
+        private void SeedLicenseTypes(ApiDbContext apiDb, string defaultCreatedBy)
+        {
+            var license1 = new LicenseTypeDM()
+            {
+                Title = "Trial",
+                Description = "Trial license",
+                ValidityInDays = (1 * 15), 
+                Amount = 0,
+                LicenseTypeCode = "1TR2025CV0015",
+                LicensePlan = LicensePlanDM.FifteenDays,
+                ValidFor = RoleTypeDM.Unknown,
+                CreatedBy = defaultCreatedBy,
+                CreatedOnUTC = DateTime.UtcNow,
+                StripePriceId = "0000",
+
+            };
+            var license2 = new LicenseTypeDM()
+            {
+                Title = "Basic",
+                Description = "Basic License",
+                Amount = 199,
+                LicenseTypeCode = "1BC2025CV0199",
+                LicensePlan = LicensePlanDM.Monthly,
+                ValidFor = RoleTypeDM.Unknown,
+                CreatedBy = defaultCreatedBy,
+                CreatedOnUTC = DateTime.UtcNow,
+                StripePriceId = "price_1QLfQlH8A6G64tHOvKnYRO49",
+
+            };
+            var license3 = new LicenseTypeDM()
+            {
+                Title = "Standard",
+                Description = "Standard Plan",
+                ValidityInDays = (1 * 30),
+                Amount = 299,
+                LicenseTypeCode = "1SD2025CV0299",
+                LicensePlan = LicensePlanDM.Monthly,
+                ValidFor = RoleTypeDM.Unknown,
+                CreatedBy = defaultCreatedBy,
+                CreatedOnUTC = DateTime.UtcNow,
+                StripePriceId = "price_1QLfRwH8A6G64tHO4J5UR7fk",
+
+            };
+            var license4 = new LicenseTypeDM()
+            {
+                Title = "Premium",
+                Description = "Premium Plan",
+                ValidityInDays = (1 * 30),
+                Amount = 399,
+                LicenseTypeCode = "1PM2025CV0399",
+                LicensePlan = LicensePlanDM.Monthly,
+                ValidFor = RoleTypeDM.Unknown,
+                CreatedBy = defaultCreatedBy,
+                CreatedOnUTC = DateTime.UtcNow,
+                StripePriceId = "price_1QLfTSH8A6G64tHOhh2osUG5",
+            };
+            
+            apiDb.AddRange(license1, license2, license3, license4);
+
+            apiDb.SaveChanges();
+        }
+
+        #endregion License
+
+        #region UserLicenseDetail
+
+        private async void SeedUserLicenseDetails(ApiDbContext apiDb, string defaultCreatedBy)
+        {
+            #region Client Admins Licenses
+
+
+            var trialUserLicenseDetails1 = new UserLicenseDetailsDM()
+            {
+                SubscriptionPlanName = "Trial",
+                LicenseTypeId = 1,
+                ClientUserId = 1,
+                DiscountInPercentage = 0,
+                ActualPaidPrice = 0,
+                ValidityInDays = 15,
+                StartDateUTC = DateTime.UtcNow,
+                ExpiryDateUTC = DateTime.UtcNow.AddDays(15),
+                CancelledOn = DateTime.UtcNow.AddDays(15),
+                CreatedBy = defaultCreatedBy,
+                CreatedOnUTC = DateTime.UtcNow,
+                ProductName = "Core Vision Trial Plan",
+                Currency = "inr",
+                StripePriceId = "0000",
+                Status = "active",
+
+            };
+            
+
+            #endregion Client Admins Licenses
+
+            
+
+            
+            apiDb.UserLicenseDetails.Add(trialUserLicenseDetails1);
+            apiDb.SaveChanges();
+        }
+
+        #endregion UserLicenseDetail
+
+        #endregion Seed License Related Data
 
         #endregion Data To Entities
 
