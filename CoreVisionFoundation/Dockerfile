@@ -2,21 +2,28 @@
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /source
 
-# Copy .sln and .csproj files, then restore dependencies
-COPY CoreVisionFoundation.sln .
+# Copy solution and project files
+COPY CoreVisionFoundation/CoreVisionFoundation.sln .
 COPY CoreVisionFoundation/*.csproj CoreVisionFoundation/
-RUN dotnet restore CoreVisionFoundation/CoreVisionFoundation.csproj
 
-# Copy everything and build the project
-COPY . .
-RUN dotnet publish CoreVisionFoundation/CoreVisionFoundation.csproj -c Release -o /app/publish
+# Restore dependencies
+WORKDIR /source/CoreVisionFoundation
+RUN dotnet restore
 
-# Use ASP.NET Core runtime to run the application
+# Copy the rest of the application source code
+COPY CoreVisionFoundation/ ./
+
+# Build the application
+RUN dotnet publish -c Release -o /app/publish --no-restore
+
+# Use ASP.NET Core runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS runtime
 WORKDIR /app
+
+# Copy published files from the build stage
 COPY --from=build /app/publish .
 
-# Expose the port your app runs on (default for ASP.NET Core is 80)
+# Expose ports (default ASP.NET Core ports)
 EXPOSE 80
 EXPOSE 443
 
