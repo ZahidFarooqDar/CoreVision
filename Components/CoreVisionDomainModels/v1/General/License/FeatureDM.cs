@@ -11,8 +11,6 @@ namespace CoreVisionDomainModels.v1.General.License
 
         [StringLength(500)]
         public string Description { get; set; }
-        [Required]
-        public double Price { get; set; }
         [StringLength(50)]
         public string FeatureCode { get; set; }
         public int UsageCount { get; set; }

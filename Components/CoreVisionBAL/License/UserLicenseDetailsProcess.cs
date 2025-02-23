@@ -1,14 +1,13 @@
-﻿using CoreVisionBAL.ExceptionHandler;
+﻿using AutoMapper;
+using CoreVisionBAL.ExceptionHandler;
 using CoreVisionBAL.Foundation.Base;
+using CoreVisionDAL.Context;
 using CoreVisionDomainModels.v1.General.License;
+using CoreVisionServiceModels.Foundation.Base.CommonResponseRoot;
+using CoreVisionServiceModels.Foundation.Base.Enums;
+using CoreVisionServiceModels.Foundation.Base.Interfaces;
 using CoreVisionServiceModels.v1.General.License;
 using Microsoft.EntityFrameworkCore;
-using CoreVisionServiceModels.Foundation.Base.Enums;
-using Stripe;
-using CoreVisionServiceModels.Foundation.Base.Interfaces;
-using AutoMapper;
-using CoreVisionDAL.Context;
-using CoreVisionServiceModels.Foundation.Base.CommonResponseRoot;
 
 namespace CoreVisionBAL.License
 {
@@ -81,7 +80,7 @@ namespace CoreVisionBAL.License
             }
             catch (Exception ex)
             {
-                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, @$"{ex.Message}", @"Could not get the product, please try again", ex.InnerException);
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, @"Could not get the subscription, please try again", $"Could not get the subscription, please try again");
             }
         }
         #endregion Get By UserId
@@ -108,6 +107,7 @@ namespace CoreVisionBAL.License
             }
         }
 
+        
         #endregion Get By Id
 
         #region Get By Stripe Customer ID and userId
@@ -165,49 +165,6 @@ namespace CoreVisionBAL.License
 
             return null;
         }
-
-
-        public async Task<UserLicenseDetailsSM?> AddUserDummySubscription(int clientUserId, UserLicenseDetailsSM objSM)
-        {
-            if (objSM == null)
-                return null;
-            var existingLicenses = await _apiDbContext.UserLicenseDetails.Where(x => x.ClientUserId == clientUserId).ToListAsync();
-            if(existingLicenses.Count > 0)
-            {
-                foreach(var lic in existingLicenses)
-                {
-                    lic.IsCancelled = true;
-                    lic.IsSuspended = true;
-                    lic.Status = "inactive";
-                }
-                await _apiDbContext.SaveChangesAsync();
-            }
-            var dm = _mapper.Map<UserLicenseDetailsDM>(objSM);
-            dm.ProductName = "Data Raptor";
-            dm.IsSuspended = false;
-            dm.Status = "active";
-            dm.Currency = "inr";
-            dm.IsCancelled = false;
-
-            dm.CreatedBy = _loginUserDetail.LoginId;
-            dm.CreatedOnUTC = DateTime.UtcNow;
-
-            try
-            {
-                await _apiDbContext.UserLicenseDetails.AddAsync(dm);
-                if (await _apiDbContext.SaveChangesAsync() > 0)
-                {
-                    return _mapper.Map<UserLicenseDetailsSM>(dm);
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, @$"{ex.Message}", @"Could not add user subscription, please try again", ex.InnerException);
-            }
-
-            return null;
-        }
-
         #endregion Add
 
 
@@ -387,90 +344,30 @@ namespace CoreVisionBAL.License
                 return null;
             }
         }
-        /// <summary>
-        /// Retrieves the active license details for a given user. 
-        /// If the license has expired, an exception is thrown with a message prompting the user to purchase a new license. 
-        /// If no active license is found, an exception is thrown indicating that no active license exists and the user needs to activate one.
-        /// </summary>
-        /// <param name="currentUserId">The ID of the user whose active license details are to be retrieved.</param>
-        /// <returns>
-        /// Returns the active license details mapped to a UserLicenseDetailsSM object if an active license exists and is valid.
-        /// </returns>
-        /// <exception cref="CoreVisionException">
-        /// Thrown when the user's license has expired, or no active license exists.
-        /// </exception>
-        /*public async Task<UserLicenseDetailsSM> GetActiveLicenseDetailsByUserId(int currentUserId)
+
+        public async Task<UserLicenseDetailsSM> GetActiveUserLicenseDetailsByUserId(int currentUserId)
         {
-
-            DateTime startDateTime = DateTime.UtcNow;
-
-            var existingLicenseDetails = await _apiDbContext.UserLicenseDetails.FirstOrDefaultAsync(x => x.ClientUserId == currentUserId && x.Status == "active");
-            if (existingLicenseDetails != null)
+            var existingLicense = await _apiDbContext.UserLicenseDetails.FirstOrDefaultAsync(x => x.ClientUserId == currentUserId && x.Status == "active");
+            if (existingLicense != null)
             {
-                if (existingLicenseDetails.ExpiryDateUTC.Value.Date < DateTime.UtcNow.Date)
+                // Check if the trial license has expired
+                if (existingLicense.ExpiryDateUTC.Value.Date < DateTime.UtcNow.Date)
                 {
-                    
-                    throw new CoreVisionException(ApiErrorTypeSM.NoRecord_NoLog, "License Period has been ended. Buy a new license to continue", "License Period has been ended. Buy a new license to continue");
+                    throw new CoreVisionException(ApiErrorTypeSM.Access_Denied_Log,
+                        $"Access denied for user ID: {currentUserId}.",
+                        "Your license has expired. Please purchase a new license to continue using the service.");
+
                 }
-                var licenseType = await _apiDbContext.LicenseTypes.Where(x=>x.StripePriceId == existingLicenseDetails.StripePriceId).AsNoTracking().FirstOrDefaultAsync();
-                if(existingLicenseDetails.LicenseTypeId != licenseType.Id)
-                {
-                    existingLicenseDetails.LicenseTypeId = licenseType.Id;
-                    await _apiDbContext.SaveChangesAsync();
-                }
-                var response = _mapper.Map<UserLicenseDetailsSM>(existingLicenseDetails);
-                return response;
+                return _mapper.Map<UserLicenseDetailsSM>(existingLicense);
             }
             else
             {
-                *//*var response = new UserLicenseDetailsSM()
-                {
-
-                }*//*
-                return new UserLicenseDetailsSM();
-               *//*// return null;
-                throw new CoreVisionException(ApiErrorTypeSM.NoRecord_NoLog,
-                    "No active license found for the user. Please activate a license to proceed.",
-                    "No active license found for the user. Please activate a license to proceed.");*//*
-            }
-        }*/
-
-        public async Task<UserLicenseDetailsSM> GetActiveLicenseDetailsByUserId(int currentUserId)
-        {
-
-            DateTime startDateTime = DateTime.UtcNow;
-            var licenseDetail = new UserLicenseDetailsSM();
-
-            var existingLicenseDetails = await _apiDbContext.UserLicenseDetails.FirstOrDefaultAsync(x => x.ClientUserId == currentUserId && x.Status == "active");
-            if (existingLicenseDetails != null)
-            {
-                if (existingLicenseDetails.ExpiryDateUTC.Value.Date < DateTime.UtcNow.Date)
-                {
-                    licenseDetail = _mapper.Map<UserLicenseDetailsSM>(existingLicenseDetails);
-                    licenseDetail.Status = "expired";
-                    return licenseDetail;
-                    //throw new CoreVisionException(ApiErrorTypeSM.NoRecord_NoLog, "License Period has been ended. Buy a new license to continue", "License Period has been ended. Buy a new license to continue");
-                }
-                var licenseType = await _apiDbContext.LicenseTypes.Where(x => x.StripePriceId == existingLicenseDetails.StripePriceId).AsNoTracking().FirstOrDefaultAsync();
-                if (existingLicenseDetails.LicenseTypeId != licenseType.Id)
-                {
-                    existingLicenseDetails.LicenseTypeId = licenseType.Id;
-                    await _apiDbContext.SaveChangesAsync();
-                }
-                licenseDetail = _mapper.Map<UserLicenseDetailsSM>(existingLicenseDetails);
-                return licenseDetail;
-            }
-            else
-            {
-                licenseDetail.Status = "expired";
-                licenseDetail.ExpiryDateUTC = DateTime.UtcNow;
-                return licenseDetail;
-                //return new UserLicenseDetailsSM();
-                /*throw new CoreVisionException(ApiErrorTypeSM.NoRecord_NoLog,
-                    "No active license found for the user. Please activate a license to proceed.",
-                    "No active license found for the user. Please activate a license to proceed.");*/
+                throw new CoreVisionException(ApiErrorTypeSM.Access_Denied_Log,
+                    $"Access denied for user ID: {currentUserId}.",
+                    "No valid license found. Please purchase a new license to continue.");
             }
         }
+
 
         #endregion Mine-License
 
@@ -516,7 +413,7 @@ namespace CoreVisionBAL.License
                 CreatedOnUTC = startDateTime,
                 ValidityInDays = 15,
                 LicenseTypeId = 1,
-                ProductName = "Data Raptor Trial License",
+                ProductName = "Core Vision Trial Plan",
                 SubscriptionPlanName = "Trial",
                 ExpiryDateUTC = startDateTime.AddDays(15),
                 CancelAt = startDateTime.AddDays(15),
@@ -525,13 +422,12 @@ namespace CoreVisionBAL.License
                 IsSuspended = false,
                 CancelledOn = null,
                 ClientUserId = userId,
-                StripeSubscriptionId = "data_raptor_trial",
+                StripeSubscriptionId = "core_vision_trial",
                 ActualPaidPrice = 0,
                 Currency = "nill",
                 Status = "active",
                 DiscountInPercentage = 0,
                 UserInvoices = null,
-                //StripeCustomerId = customerId,
                 StripePriceId = "0000"
             };
 
@@ -539,102 +435,7 @@ namespace CoreVisionBAL.License
             return await _apiDbContext.SaveChangesAsync() > 0
                 ? _mapper.Map<UserLicenseDetailsSM>(userLicenseDetailDM)
                 : null;
-        }
-        public async Task<UserLicenseDetailsSM?> AddOrUpdateTrialLicenseDetails(int userId)
-        {
-            DateTime currentUtcTime = DateTime.UtcNow;
-
-            //Todo: Check whether to implement this logic for users who already have or had license other than trial
-            /*var userWithLicense = await _apiDbContext.UserLicenseDetails
-                .Where(x => x.ClientUserId == userId && x.SubscriptionPlanName != "Trial")
-                .FirstOrDefaultAsync();
-
-            if (userWithLicense != null)
-            {
-                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,
-                    "Trial period is not available for this user.",
-                    "You are not eligible for a trial period.");
-            }*/
-            // Check if an active trial license already exists
-            var existingActiveTrialLicense = await _apiDbContext.UserLicenseDetails
-                .FirstOrDefaultAsync(x => x.ClientUserId == userId && x.SubscriptionPlanName == "Trial" && x.Status == "active");
-
-            if (existingActiveTrialLicense != null)
-            {
-                // If an active trial exists but is expired, update status and throw an exception
-                if (existingActiveTrialLicense.ExpiryDateUTC <= currentUtcTime)
-                {
-                    await UpdateLicenseStatus(existingActiveTrialLicense.Id);
-                    throw new CoreVisionException(ApiErrorTypeSM.NoRecord_NoLog,
-                        "Your Trial Period is Over",
-                        "Your Trial Period is Over");
-                }
-                else
-                {
-                    throw new CoreVisionException(ApiErrorTypeSM.NoRecord_NoLog,
-                        "Trial license already exists for user",
-                        "Trial license already exists for user");
-                }
-            }
-
-            // Check if the user has a trial license that has ended
-            var endedTrialLicense = await _apiDbContext.UserLicenseDetails
-                .FirstOrDefaultAsync(x => x.ClientUserId == userId && x.Status == "trial_period_ended");
-
-            if (endedTrialLicense != null)
-            {
-                throw new CoreVisionException(ApiErrorTypeSM.NoRecord_NoLog,
-                    "Trial Period has ended. Please purchase a new license to continue.",
-                    "Trial Period has ended. Please purchase a new license to continue.");
-            }
-
-            // Check if the user has any existing trial license (active or not)
-            var existingTrialLicense = await _apiDbContext.UserLicenseDetails
-                .FirstOrDefaultAsync(x => x.ClientUserId == userId && x.SubscriptionPlanName == "Trial");
-
-            if (existingTrialLicense != null)
-            {
-                throw new CoreVisionException(ApiErrorTypeSM.NoRecord_NoLog,
-                    "Trial license already exists for the user",
-                    "Trial license already exists for the user");
-            }
-
-            // Create and save a new trial license
-            var newTrialLicense = new UserLicenseDetailsDM
-            {
-                CreatedBy = _loginUserDetail.LoginId,
-                CreatedOnUTC = currentUtcTime,
-                ValidityInDays = 15,  // 15 days validity for trial license
-                LicenseTypeId = 1,
-                ProductName = "Data Raptor Trial License",
-                SubscriptionPlanName = "Trial",
-                ExpiryDateUTC = currentUtcTime.AddDays(15),  // 7 days trial period
-                CancelAt = currentUtcTime.AddDays(15),
-                StartDateUTC = currentUtcTime,
-                IsCancelled = false,
-                IsSuspended = false,
-                CancelledOn = null,
-                ClientUserId = userId,
-                StripeSubscriptionId = "data_raptor_trial",
-                ActualPaidPrice = 0,
-                Currency = "nill",
-                Status = "active",
-                DiscountInPercentage = 0,
-                UserInvoices = null,
-                StripePriceId = "0000"
-            };
-
-            await _apiDbContext.UserLicenseDetails.AddAsync(newTrialLicense);
-
-            // Save the new trial license and return the mapped service model
-            if (await _apiDbContext.SaveChangesAsync() > 0)
-            {
-                return _mapper.Map<UserLicenseDetailsSM>(newTrialLicense);
-            }
-
-            return null;
-        }
-
+        }        
         public async Task<UserLicenseDetailsSM?> UpdateLicenseStatus(int id)
         {
             var userLicenseDetails = await _apiDbContext.UserLicenseDetails.FirstOrDefaultAsync(x => x.Id == id);
@@ -654,93 +455,6 @@ namespace CoreVisionBAL.License
         #endregion Trial License Methods
 
         #region Additional
-
-        #region Add New Stripe Customer and Add Trial license as well
-
-        public async Task<string> CreateStripeCustomer(int userId)
-        {
-            var user = await _apiDbContext.ClientUsers.Where(x => x.Id == userId).FirstOrDefaultAsync();
-
-            // Create options for creating a new customer
-            var options = new CustomerCreateOptions
-            {
-                Name = user.LoginId,
-                Email = user.EmailId
-            };
-
-            // Initialize the CustomerService
-            var service = new Stripe.CustomerService();
-
-            // Call the CreateAsync method with the options to create a new customer
-            var customer = await service.CreateAsync(options);
-            /*if(customer != null)
-            {
-                var userDetails = await _userLicenseDetailsProcess.GetUserSubscriptionByUserId(userId);
-
-                userDetails.StripeCustomerId = customer.Id;
-                await _apiDbContext.SaveChangesAsync();
-            }*/
-            return customer.Id;
-
-        }
-
-        public async Task<UserLicenseDetailsSM?> AddTrialLicenseWithStripeCustomerDetails(int userId, string stripeCustomerId)
-        {
-            DateTime startDateTime = DateTime.UtcNow;
-
-            // Check for existing active trial license
-            var existingTrialLicense = await _apiDbContext.UserLicenseDetails
-                .FirstOrDefaultAsync(x => x.ClientUserId == userId && x.SubscriptionPlanName == "Trial");
-
-            if (existingTrialLicense != null)
-            {
-                if (existingTrialLicense.Status == "active" && existingTrialLicense.ExpiryDateUTC > startDateTime)
-                {
-                    throw new CoreVisionException(ApiErrorTypeSM.NoRecord_NoLog, "Trial license already exists for user", "Trial license already exists for user");
-                }
-                else if (existingTrialLicense.Status == "active")
-                {
-                    await UpdateLicenseStatus(existingTrialLicense.Id);
-                    throw new CoreVisionException(ApiErrorTypeSM.NoRecord_NoLog, "Your Trial Period is Over", "Your Trial Period is Over");
-                }
-                else if (existingTrialLicense.Status == "trial_period_ended")
-                {
-                    throw new CoreVisionException(ApiErrorTypeSM.NoRecord_NoLog, "Trial Period has ended. Purchase a new license to continue", "Trial Period has ended. Purchase a new license to continue");
-                }
-            }
-
-            // Add new trial license
-            var userLicenseDetailDM = new UserLicenseDetailsDM
-            {
-                CreatedBy = _loginUserDetail.LoginId,
-                CreatedOnUTC = startDateTime,
-                ValidityInDays = 15,
-                LicenseTypeId = 1,
-                ProductName = "Data Raptor",
-                SubscriptionPlanName = "Trial",
-                ExpiryDateUTC = startDateTime.AddDays(15),
-                CancelAt = startDateTime.AddDays(15),
-                StartDateUTC = startDateTime,
-                IsCancelled = false,
-                IsSuspended = false,
-                CancelledOn = null,
-                ClientUserId = userId,
-                StripeSubscriptionId = "data_raptor_trial",
-                ActualPaidPrice = 0,
-                Currency = "nill",
-                Status = "active",
-                DiscountInPercentage = 0,
-                UserInvoices = null,
-                StripeCustomerId = stripeCustomerId,
-                StripePriceId = "0000"
-            };
-
-            await _apiDbContext.UserLicenseDetails.AddAsync(userLicenseDetailDM);
-            return await _apiDbContext.SaveChangesAsync() > 0
-                ? _mapper.Map<UserLicenseDetailsSM>(userLicenseDetailDM)
-                : null;
-        }
-        #endregion Add New Stripe Customer and Add Trial license as well
 
         #endregion Additional
     }

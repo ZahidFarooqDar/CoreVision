@@ -6,7 +6,6 @@ namespace CoreVisionServiceModels.v1.General.License
     {
         public string Title { get; set; }
         public string Description { get; set; }
-        public double Price { get; set; }
         public string FeatureCode { get; set; }
         public int ValidityInDays { get; set; }
         public int UsageCount { get; set; }

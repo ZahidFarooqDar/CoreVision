@@ -31,6 +31,7 @@ namespace CoreVisionDAL.Context
                 SeedLicenseTypes(apiDb, defaultCreatedBy);
                 SeedFeatures(apiDb, defaultCreatedBy);
                 SeedUserLicenseDetails(apiDb, defaultCreatedBy);
+                seedFeatureLicenseDetails(apiDb, defaultCreatedBy);
 
                 return true;
             }
@@ -47,12 +48,12 @@ namespace CoreVisionDAL.Context
             var codeVisionCompany = new ClientCompanyDetailDM()
             {
                 Id = 1,
-                Name = "Code Vision",
+                Name = "Core Vision",
                 CompanyCode = "123",
                 Description = "Software Development Company",
-                ContactEmail = "codevision@outlook.com",
+                ContactEmail = "corevision@outlook.com",
                 CompanyMobileNumber = "9876542341",
-                CompanyWebsite = "www.codevision.com",
+                CompanyWebsite = "www.corevision.com",
                 CompanyLogoPath = "wwwroot/content/companies/logos/company.jpg",
                 CompanyDateOfEstablishment = new DateTime(1990, 1, 1),
                 CreatedBy = defaultCreatedBy,
@@ -121,10 +122,10 @@ namespace CoreVisionDAL.Context
                 ClientCompanyDetailId = 1,
                 RoleType = RoleTypeDM.ClientAdmin,
                 FirstName = "Client",
-                MiddleName = "Admin",
-                EmailId = "companyadmin@email.com",
+                MiddleName = "User",
+                EmailId = "clientuser1@email.com",
                 LastName = "One",
-                LoginId = "clientadmin1",
+                LoginId = "clientuser1",
                 IsEmailConfirmed = true,
                 PhoneNumber = "1234567890",
                 LoginStatus = LoginStatusDM.Enabled,
@@ -138,11 +139,11 @@ namespace CoreVisionDAL.Context
             {
                 ClientCompanyDetailId = 1,
                 RoleType = RoleTypeDM.ClientAdmin,
-                FirstName = "Client2",
-                MiddleName = "Admin",
-                EmailId = "companyadmin@email.com",
+                FirstName = "Client",
+                MiddleName = "user",
+                EmailId = "clientuser2@email.com",
                 LastName = "Two",
-                LoginId = "clientadmin2",
+                LoginId = "clientuser2",
                 IsEmailConfirmed = true,
                 PhoneNumber = "1234567890",
                 LoginStatus = LoginStatusDM.Enabled,
@@ -367,22 +368,8 @@ namespace CoreVisionDAL.Context
             {
                 new FeatureDM()
                 {
-                    Title = "Text Extraction",
-                    Description = "Extraction of text from Images ",
-                    Price = 50,
-                    FeatureCode = "CVTE-2025",
-                    UsageCount = 1,
-                    isFeatureCountable = true,
-                    StartDate = DateTime.UtcNow,
-                    EndDate = DateTime.UtcNow.AddDays(30),
-                    CreatedBy = defaultCreatedBy,
-                    CreatedOnUTC = DateTime.UtcNow,
-                },
-                new FeatureDM()
-                {
-                    Title = "Text Summerization",
-                    Description = "Summerize text",
-                    Price = 50,
+                    Title = "Text Summarization",
+                    Description = "Generate concise summaries from text.",
                     FeatureCode = "CVSUM-2025",
                     UsageCount = 1,
                     isFeatureCountable = true,
@@ -394,8 +381,7 @@ namespace CoreVisionDAL.Context
                 new FeatureDM()
                 {
                     Title = "Text Translation",
-                    Description = "Translate text",
-                    Price = 50,
+                    Description = "Convert text between languages",
                     FeatureCode = "CVTT-2025",
                     UsageCount = 0,
                     isFeatureCountable = false,
@@ -406,9 +392,21 @@ namespace CoreVisionDAL.Context
                 },
                 new FeatureDM()
                 {
+                    Title = "Image OCR Processing",
+                    Description = "Extract text from images with high accuracy.",
+                    FeatureCode = "CVTE-2025",
+                    UsageCount = 1,
+                    isFeatureCountable = true,
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddDays(30),
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow,
+                },
+                
+                new FeatureDM()
+                {
                     Title = "Audio Transcription",
-                    Description = "Audio Transcription",
-                    Price = 50,
+                    Description = "Convert audio into text accurately",
                     FeatureCode = "CVAUD-2025",
                     UsageCount = 0,
                     isFeatureCountable = false,
@@ -419,10 +417,57 @@ namespace CoreVisionDAL.Context
                 },
                 new FeatureDM()
                 {
-                    Title = "Audio Summerization",
-                    Description = "Audio Summerization",
-                    Price = 50,
+                    Title = "Audio Summarization",
+                    Description = "Generate concise summaries from audio",
                     FeatureCode = "CVAUDSUM-2025",
+                    UsageCount = 0,
+                    isFeatureCountable = false,
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddDays(30),
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow,
+                },
+                new FeatureDM()
+                {
+                    Title = "AI Image Generation",
+                    Description = "Create images from text prompts with AI",
+                    FeatureCode = "CVIMG-2025",
+                    UsageCount = 0,
+                    isFeatureCountable = false,
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddDays(30),
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow,
+                },
+                new FeatureDM()
+                {
+                    Title = "AI Story Generation",
+                    Description = "Create Story from text prompts with AI",
+                    FeatureCode = "CVSTORY-2025",
+                    UsageCount = 0,
+                    isFeatureCountable = false,
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddDays(30),
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow,
+                },
+                new FeatureDM()
+                {
+                    Title = "Barcode Generation",
+                    Description = "Create Various Barcodes",
+                    FeatureCode = "CVBARCODE-2025",
+                    UsageCount = 0,
+                    isFeatureCountable = false,
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddDays(30),
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow,
+                },
+                 new FeatureDM()
+                {
+                    Title = "AI Chat Assistant",
+                    Description = "An intelligent AI-powered chat assistant that provides instant answers and engages in natural conversations",
+                    FeatureCode = "CVCHAT-2025",
                     UsageCount = 0,
                     isFeatureCountable = false,
                     StartDate = DateTime.UtcNow,
@@ -445,7 +490,7 @@ namespace CoreVisionDAL.Context
             var license1 = new LicenseTypeDM()
             {
                 Title = "Trial",
-                Description = "Trial license",
+                Description = "Core Vision Trial Plan",
                 ValidityInDays = (1 * 15), 
                 Amount = 0,
                 LicenseTypeCode = "1TR2025CV0015",
@@ -459,20 +504,20 @@ namespace CoreVisionDAL.Context
             var license2 = new LicenseTypeDM()
             {
                 Title = "Basic",
-                Description = "Basic License",
+                Description = "Core Vision Basic Plan",
                 Amount = 199,
                 LicenseTypeCode = "1BC2025CV0199",
                 LicensePlan = LicensePlanDM.Monthly,
                 ValidFor = RoleTypeDM.Unknown,
                 CreatedBy = defaultCreatedBy,
                 CreatedOnUTC = DateTime.UtcNow,
-                StripePriceId = "price_1QLfQlH8A6G64tHOvKnYRO49",
+                StripePriceId = "price_1QvXBVIprUCdDPzTWZtXQTtT",
 
             };
             var license3 = new LicenseTypeDM()
             {
                 Title = "Standard",
-                Description = "Standard Plan",
+                Description = "Core Vision Standard Plan",
                 ValidityInDays = (1 * 30),
                 Amount = 299,
                 LicenseTypeCode = "1SD2025CV0299",
@@ -480,13 +525,13 @@ namespace CoreVisionDAL.Context
                 ValidFor = RoleTypeDM.Unknown,
                 CreatedBy = defaultCreatedBy,
                 CreatedOnUTC = DateTime.UtcNow,
-                StripePriceId = "price_1QLfRwH8A6G64tHO4J5UR7fk",
+                StripePriceId = "price_1QvXEJIprUCdDPzTwiGqPvfv",
 
             };
             var license4 = new LicenseTypeDM()
             {
                 Title = "Premium",
-                Description = "Premium Plan",
+                Description = "Core Vision Premium Plan",
                 ValidityInDays = (1 * 30),
                 Amount = 399,
                 LicenseTypeCode = "1PM2025CV0399",
@@ -494,7 +539,7 @@ namespace CoreVisionDAL.Context
                 ValidFor = RoleTypeDM.Unknown,
                 CreatedBy = defaultCreatedBy,
                 CreatedOnUTC = DateTime.UtcNow,
-                StripePriceId = "price_1QLfTSH8A6G64tHOhh2osUG5",
+                StripePriceId = "price_1QvXFiIprUCdDPzTHefLTWUh",
             };
             
             apiDb.AddRange(license1, license2, license3, license4);
@@ -503,6 +548,43 @@ namespace CoreVisionDAL.Context
         }
 
         #endregion License
+
+        #region Seed Feature Details with License types
+
+        private void seedFeatureLicenseDetails(ApiDbContext apiDb, string defaultCreatedBy)
+        {
+            var featureDetails = new List<FeatureDM_LicenseTypeDM>()
+            {
+                new () { LicenseTypeId = 1, FeatureId = 1},
+                new () { LicenseTypeId = 1, FeatureId = 2},
+
+                new () { LicenseTypeId = 2, FeatureId = 1},
+                new () { LicenseTypeId = 2, FeatureId = 2},
+                new () { LicenseTypeId = 2, FeatureId = 3},
+                new () { LicenseTypeId = 2, FeatureId = 8},
+
+                new () { LicenseTypeId = 3, FeatureId = 1},
+                new () { LicenseTypeId = 3, FeatureId = 2},
+                new () { LicenseTypeId = 3, FeatureId = 3},
+                new () { LicenseTypeId = 3, FeatureId = 4},
+                new () { LicenseTypeId = 3, FeatureId = 5},
+                new () { LicenseTypeId = 3, FeatureId = 8},
+
+                new () { LicenseTypeId = 4, FeatureId = 1},
+                new () { LicenseTypeId = 4, FeatureId = 2},
+                new () { LicenseTypeId = 4, FeatureId = 3},
+                new () { LicenseTypeId = 4, FeatureId = 4},
+                new () { LicenseTypeId = 4, FeatureId = 5},
+                new () { LicenseTypeId = 4, FeatureId = 6},
+                new () { LicenseTypeId = 4, FeatureId = 7},         
+                new () { LicenseTypeId = 4, FeatureId = 8}         
+
+            };
+            apiDb.LicenseFeatures.AddRange(featureDetails);
+            apiDb.SaveChanges();
+        }
+
+        #endregion Seed Feature Details with License types
 
         #region UserLicenseDetail
 
@@ -529,12 +611,9 @@ namespace CoreVisionDAL.Context
                 StripePriceId = "0000",
                 Status = "active",
 
-            };
-            
+            };            
 
-            #endregion Client Admins Licenses
-
-            
+            #endregion Client Admins Licenses         
 
             
             apiDb.UserLicenseDetails.Add(trialUserLicenseDetails1);

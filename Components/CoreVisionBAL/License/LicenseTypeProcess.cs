@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using CoreVisionBAL.ExceptionHandler;
 using CoreVisionBAL.Foundation.Base;
 using CoreVisionDAL.Context;
 using CoreVisionDomainModels.v1.General.License;
+using CoreVisionServiceModels.Foundation.Base.Enums;
 using CoreVisionServiceModels.Foundation.Base.Interfaces;
 using CoreVisionServiceModels.v1.General.License;
 using Microsoft.EntityFrameworkCore;
@@ -99,10 +101,11 @@ namespace CoreVisionBAL.License
             }
             return null;
         }
+
         #endregion Get Single
 
         #region Get Single Extended
-        
+
         /// <summary>
         /// 
         /// </summary>

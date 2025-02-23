@@ -42,6 +42,7 @@ namespace CoreVisionDAL.Context
         public DbSet<UserInvoiceDM> UserInvoices { get; set; }
         public DbSet<UserLicenseDetailsDM> UserLicenseDetails { get; set; }
         public DbSet<FeatureDM> Features { get; set; }
+        public DbSet<FeatureDM_LicenseTypeDM> LicenseFeatures { get; set; }
 
         #endregion License
 

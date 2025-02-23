@@ -8,6 +8,7 @@ using CoreVisionDAL.Context;
 using CoreVisionServiceModels.Foundation.Base.Enums;
 using CoreVisionServiceModels.v1.General.AzureAI;
 using CoreVisionServiceModels.v1.General.HuggingFace;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CoreVisionBAL.Projects.BaseAIProcess
 {
@@ -275,5 +276,36 @@ namespace CoreVisionBAL.Projects.BaseAIProcess
 
 
         #endregion Hugging Face AI Base Methods        
+
+        #region Audio Summary
+
+        public async Task<AudioTranscriptionResponseSM> AudioSummerization(AudioTranscriptionRequestSM objSM)
+        {
+            var audioTranscription = await _huggingfaceProcess.TranscribeAudioUsingHuggingFaceAsync(objSM);
+            if (audioTranscription.Response.IsNullOrEmpty())
+            {
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,
+                    "The request took longer than expected and timed out. Please try again in a moment.",
+                    $"The request took longer than expected and timed out. Please try again in a moment.");
+            }
+            var input = new AzureAIRequestSM()
+            {
+                TextInput = audioTranscription.Response
+            };
+            var response = await BaseMethodForExtensiveSummarization(input);
+            if(response != null)
+            {
+                return new AudioTranscriptionResponseSM()
+                {
+                    Response = response.TextResponse
+                };
+            }
+            throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,
+                    "The request took longer than expected and timed out. Please try again in a moment.",
+                    $"The request took longer than expected and timed out. Please try again in a moment.");
+
+        }
+
+        #endregion Audio Summary
     }
 }

@@ -38,6 +38,7 @@ namespace CoreVisionBAL.License
             _userLicenseDetailsProcess = userLicenseDetailsProcess;
             _userInvoiceProcess = userInvoiceProcess;
             _licenseTypeProcess = licenseTypeProcess;
+            StripeConfiguration.ApiKey = "sk_test_51QvWhPIprUCdDPzTErrAF5tdYZavg8pua72sbHDB1ENeaRzAfEf291LSfUXHvRD54mbKPAwV0ZIh0tAkNNTGCRsx00jLGuo4n6";
         }
         #endregion Constructor
 

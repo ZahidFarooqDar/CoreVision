@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using CoreVisionBAL.Base.Email;
 using CoreVisionBAL.Clients;
 using CoreVisionServiceModels.v1.General;
+using CoreVisionBAL.License;
 
 namespace CoreVisionBAL.AppUsers
 {
@@ -26,12 +27,13 @@ namespace CoreVisionBAL.AppUsers
         private readonly APIConfiguration _apiConfiguration;
         private readonly ClientCompanyDetailProcess _clientCompanyDetailProcess;
         private readonly EmailProcess _emailProcess;
+        private readonly UserLicenseDetailsProcess _userLicenseDetailsProcess;
 
         #endregion Properties
 
         #region Constructor
         public ClientUserProcess(IMapper mapper, ILoginUserDetail loginUserDetail, ApiDbContext apiDbContext,
-            ClientCompanyDetailProcess clientCompanyDetailProcess, EmailProcess emailProcess,
+            ClientCompanyDetailProcess clientCompanyDetailProcess, EmailProcess emailProcess,UserLicenseDetailsProcess userLicenseDetailsProcess,
             IPasswordEncryptHelper passwordEncryptHelper, APIConfiguration apiConfiguration)
             : base(mapper, loginUserDetail, apiDbContext)
         {
@@ -39,6 +41,7 @@ namespace CoreVisionBAL.AppUsers
             _apiConfiguration = apiConfiguration;
             _clientCompanyDetailProcess = clientCompanyDetailProcess;
             _emailProcess = emailProcess;
+            _userLicenseDetailsProcess = userLicenseDetailsProcess;
         }
 
         #endregion Constructor
@@ -883,6 +886,7 @@ namespace CoreVisionBAL.AppUsers
                     user.LastModifiedOnUTC = DateTime.UtcNow;
                     if (await _apiDbContext.SaveChangesAsync() > 0)
                     {
+                        await _userLicenseDetailsProcess.AddTrialLicenseDetails(user.Id);
                         return new BoolResponseRoot(true, "Your Email Verified Successfully, Login to your Account now");
                     }
                     throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Something went wrong while verifying your email, Please try again later");

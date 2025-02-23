@@ -1,29 +1,28 @@
-﻿using CoreVisionBAL.Projects.ScanCode;
+﻿using CoreVisionBAL.Foundation.Web;
+using CoreVisionBAL.License;
+using CoreVisionBAL.Projects.ScanCode;
 using CoreVisionFoundation.Controllers.Base;
 using CoreVisionFoundation.Security;
-using CoreVisionServiceModels.AppUser;
 using CoreVisionServiceModels.Foundation.Base.CommonResponseRoot;
 using CoreVisionServiceModels.Foundation.Base.Enums;
 using CoreVisionServiceModels.v1.General.ScanCodes;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
-using ZXing;
 
 namespace CoreVisionFoundation.Controllers.ScanCodes
 {
     [ApiController]
     [Route("api/v1/[controller]")]
-
-    [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin, ClientAdmin")]
     public class ScanCodeController : ApiControllerWithOdataRoot<ScanCodesFormatSM>
     {
         private readonly ScanCodesProcess _scanCodesProcess;
-        public ScanCodeController(ScanCodesProcess process)
+        private readonly PermissionProcess _permissionProcess;
+        public ScanCodeController(ScanCodesProcess process, PermissionProcess permissionProcess)
             : base(process)
         {
             _scanCodesProcess = process;
+            _permissionProcess = permissionProcess;
         }
 
         #region Odata EndPoints
@@ -73,6 +72,7 @@ namespace CoreVisionFoundation.Controllers.ScanCodes
         #region Add
 
         [HttpPost]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin, ClientAdmin")]
         public async Task<ActionResult<ApiResponse<ScanCodesFormatSM>>> Post([FromBody] ApiRequest<ScanCodesFormatSM> apiRequest)
         {
             #region Check Request
@@ -101,6 +101,7 @@ namespace CoreVisionFoundation.Controllers.ScanCodes
 
         #region Put
         [HttpPut("{id}")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin, ClientAdmin")]
         public async Task<ActionResult<ApiResponse<ScanCodesFormatSM>>> Put(int id, [FromBody] ApiRequest<ScanCodesFormatSM> apiRequest)
         {
             #region Check Request
@@ -132,6 +133,7 @@ namespace CoreVisionFoundation.Controllers.ScanCodes
         #region Delete
 
         [HttpDelete("{id}")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin, ClientAdmin")]
         public async Task<ActionResult<ApiResponse<DeleteResponseRoot>>> Delete(int id)
         {
             var resp = await _scanCodesProcess.DeleteBarcodeFormatById(id);
@@ -150,7 +152,7 @@ namespace CoreVisionFoundation.Controllers.ScanCodes
         #region Generate QrCode
 
         [HttpPost("qrcode")]
-        [AllowAnonymous]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "ClientEmployee, CompanyAutomation")]
         public async Task<ActionResult<ApiResponse<CodeResponseSM>>> GenerateQRCode([FromBody] ApiRequest<GenerateQRCodeSM> apiRequest)
         {
             var innerReq = apiRequest?.ReqData;
@@ -158,8 +160,9 @@ namespace CoreVisionFoundation.Controllers.ScanCodes
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-
-            // Generate the barcode image (assuming it returns a byte array).
+            var featureCode = "CVBARCODE-2025";
+            int userId = User.GetUserRecordIdFromCurrentUserClaims();
+            await _permissionProcess.DoesUserHasPermission(userId, featureCode);
             var barcodeImageData = await _scanCodesProcess.GenerateQRcode(innerReq);
 
             return ModelConverter.FormNewSuccessResponse(barcodeImageData);
@@ -171,7 +174,7 @@ namespace CoreVisionFoundation.Controllers.ScanCodes
         #region Zxing  Codes
 
         [HttpPost("generate")]
-        [AllowAnonymous]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "ClientEmployee, CompanyAutomation")]
         public async Task<ActionResult<ApiResponse<CodeResponseSM>>> GenerateBarcodes([FromBody] ApiRequest<GenerateBarcodeSM> apiRequest)
         {
             var innerReq = apiRequest?.ReqData;
@@ -179,8 +182,9 @@ namespace CoreVisionFoundation.Controllers.ScanCodes
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-
-            // Generate the barcode image (assuming it returns a byte array).
+            var featureCode = "CVBARCODE-2025";
+            int userId = User.GetUserRecordIdFromCurrentUserClaims();
+            await _permissionProcess.DoesUserHasPermission(userId, featureCode);
             var barcodeImageData = await _scanCodesProcess.GenerateCode(innerReq);
 
             return ModelConverter.FormNewSuccessResponse(barcodeImageData);

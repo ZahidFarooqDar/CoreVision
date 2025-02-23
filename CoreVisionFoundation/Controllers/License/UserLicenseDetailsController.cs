@@ -109,35 +109,6 @@ namespace CoreVisionFoundation.Controllers.License
             }
         }
 
-        [HttpPost("dummy/license")]
-        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "ClientAdmin, ClientEmployee")]
-        public async Task<ActionResult<ApiResponse<UserLicenseDetailsSM>>> PostDummyLicense([FromBody] ApiRequest<UserLicenseDetailsSM> apiRequest)
-        {
-            #region Check Request
-
-            var innerReq = apiRequest?.ReqData;
-            if (innerReq == null)
-            {
-                return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
-            }
-            var clientUserId = User.GetUserRecordIdFromCurrentUserClaims();
-
-            #endregion Check Request
-
-            var userLicesneDetailsSM = await _userLicenseDetailsProcess.AddUserDummySubscription(clientUserId, innerReq);
-            if (userLicesneDetailsSM != null)
-            {
-                return CreatedAtAction(nameof(GetById), new
-                {
-                    id = userLicesneDetailsSM.Id
-                }, ModelConverter.FormNewSuccessResponse(userLicesneDetailsSM));
-            }
-            else
-            {
-                return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_PassedDataNotSaved, ApiErrorTypeSM.NoRecord_NoLog));
-            }
-        }
-
         [HttpPut("{id}")]
         [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SystemAdmin,SuperAdmin")]
         public async Task<ActionResult<ApiResponse<UserLicenseDetailsSM>>> Put(int id, [FromBody] ApiRequest<UserLicenseDetailsSM> apiRequest)
