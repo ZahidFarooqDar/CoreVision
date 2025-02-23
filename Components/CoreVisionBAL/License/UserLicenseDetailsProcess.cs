@@ -48,14 +48,14 @@ namespace CoreVisionBAL.License
         {
             try
             {
-                var productsFromDb = await _apiDbContext.UserLicenseDetails.ToListAsync();
-                if (productsFromDb == null)
+                var dms = await _apiDbContext.UserLicenseDetails.ToListAsync();
+                if (dms == null)
                     return null;
-                return _mapper.Map<List<UserLicenseDetailsSM>>(productsFromDb);
+                return _mapper.Map<List<UserLicenseDetailsSM>>(dms);
             }
             catch (Exception ex)
             {
-                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, @$"{ex.Message}", @"Could not get products, please try again", ex.InnerException);
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, @$"{ex.Message}", @"Could not get subscriptions, please try again", ex.InnerException);
             }
         }
 
@@ -73,10 +73,10 @@ namespace CoreVisionBAL.License
         {
             try
             {
-                var singleUserSubscriptionFromDb = await _apiDbContext.UserLicenseDetails.Where(x => x.ClientUserId == userId).FirstOrDefaultAsync();
-                if (singleUserSubscriptionFromDb == null)
+                var dm = await _apiDbContext.UserLicenseDetails.Where(x => x.ClientUserId == userId).FirstOrDefaultAsync();
+                if (dm == null)
                     return null;
-                return _mapper.Map<UserLicenseDetailsSM>(singleUserSubscriptionFromDb);
+                return _mapper.Map<UserLicenseDetailsSM>(dm);
             }
             catch (Exception ex)
             {
