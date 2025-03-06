@@ -82,7 +82,7 @@ namespace CoreVisionFoundation.Controllers.Token
                 ICollection<Claim> claims = new List<Claim>()
                 {
                     new Claim(ClaimTypes.Name,innerReq.LoginId),
-                    new Claim(ClaimTypes.Role,innerReq.RoleType.ToString()),
+                    new Claim(ClaimTypes.Role,userSM.RoleType.ToString()),
                     new Claim(ClaimTypes.GivenName,userSM.FirstName + " " + userSM.MiddleName + " " +userSM.LastName ),
                     new Claim(ClaimTypes.Email,userSM.EmailId),
                     new Claim(DomainConstants.ClaimsRoot.Claim_DbRecordId,userSM.Id.ToString())
