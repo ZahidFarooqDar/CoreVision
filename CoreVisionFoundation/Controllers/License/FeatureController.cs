@@ -45,8 +45,17 @@ namespace CoreVisionFoundation.Controllers.License
             var featureListSM = await _featureProcess.GetAllFeatures();
             return Ok(ModelConverter.FormNewSuccessResponse(featureListSM));
         }
+
         #endregion Get All Endpoint
 
+        #region Get Features By License Id
+        [HttpGet("license/{licenseId}")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<FeatureSM>>>> GetFeaturesByLicenseId(int licenseId)
+        {
+            var featureListSM = await _featureProcess.GetFeaturesbylicenseId(licenseId);
+            return Ok(ModelConverter.FormNewSuccessResponse(featureListSM));
+        }
+        #endregion Get Features By License Id
         #region Get Single Endpoint
         [HttpGet("{id}")]
         public async Task<ActionResult<ApiResponse<FeatureSM>>> GetById(int id)

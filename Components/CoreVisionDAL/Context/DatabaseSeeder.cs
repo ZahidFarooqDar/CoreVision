@@ -577,7 +577,8 @@ namespace CoreVisionDAL.Context
                 new () { LicenseTypeId = 4, FeatureId = 5},
                 new () { LicenseTypeId = 4, FeatureId = 6},
                 new () { LicenseTypeId = 4, FeatureId = 7},         
-                new () { LicenseTypeId = 4, FeatureId = 8}         
+                new () { LicenseTypeId = 4, FeatureId = 8},       
+                new () { LicenseTypeId = 4, FeatureId = 9},       
 
             };
             apiDb.LicenseFeatures.AddRange(featureDetails);
