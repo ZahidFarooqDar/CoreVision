@@ -44,9 +44,9 @@ namespace CoreVisionFoundation.Controllers.AI
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-            int userId = User.GetUserRecordIdFromCurrentUserClaims();
+            /*int userId = User.GetUserRecordIdFromCurrentUserClaims();
             var featureCode = "CVAUD-2025";
-            await _permissionProcess.DoesUserHasPermission(userId, featureCode);            
+            await _permissionProcess.DoesUserHasPermission(userId, featureCode); */           
             var resp = await _huggingfaceProcess.TranscribeAudioUsingHuggingFaceAsync(innerReq);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
 
@@ -61,9 +61,9 @@ namespace CoreVisionFoundation.Controllers.AI
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-            var featureCode = "CVAUDSUM-2025";
+            /*var featureCode = "CVAUDSUM-2025";
             int userId = User.GetUserRecordIdFromCurrentUserClaims();
-            await _permissionProcess.DoesUserHasPermission(userId, featureCode);
+            await _permissionProcess.DoesUserHasPermission(userId, featureCode);*/
             var resp = await _baseAIProcess.AudioSummerization(innerReq);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
 
@@ -78,9 +78,9 @@ namespace CoreVisionFoundation.Controllers.AI
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-            var featureCode = "CVTE-2025";
+           /* var featureCode = "CVTE-2025";
             int userId = User.GetUserRecordIdFromCurrentUserClaims();
-            await _permissionProcess.DoesUserHasPermission(userId, featureCode);
+            await _permissionProcess.DoesUserHasPermission(userId, featureCode);*/
             var resp = await _baseAIProcess.BaseMethodForTextExtraction(innerReq);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
 
@@ -95,9 +95,9 @@ namespace CoreVisionFoundation.Controllers.AI
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-            var featureCode = "CVCHAT-2025";
+            /*var featureCode = "CVCHAT-2025";
             int userId = User.GetUserRecordIdFromCurrentUserClaims();
-            await _permissionProcess.DoesUserHasPermission(userId, featureCode);
+            await _permissionProcess.DoesUserHasPermission(userId, featureCode);*/
             var resp = await _huggingfaceProcess.ExtractResponseUsingDeepSeekAsync(innerReq);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
 
@@ -112,9 +112,9 @@ namespace CoreVisionFoundation.Controllers.AI
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-            var featureCode = "CVTT-2025";
+            /*var featureCode = "CVTT-2025";
             int userId = User.GetUserRecordIdFromCurrentUserClaims();
-            await _permissionProcess.DoesUserHasPermission(userId, featureCode);
+            await _permissionProcess.DoesUserHasPermission(userId, featureCode);*/
             var resp = await _baseAIProcess.BaseMethodForTextTranslation(innerReq);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
 
@@ -129,9 +129,9 @@ namespace CoreVisionFoundation.Controllers.AI
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-            var featureCode = "CVSUM-2025";
+            /*var featureCode = "CVSUM-2025";
             int userId = User.GetUserRecordIdFromCurrentUserClaims();
-            await _permissionProcess.DoesUserHasPermission(userId, featureCode);
+            await _permissionProcess.DoesUserHasPermission(userId, featureCode);*/
             var resp = await _baseAIProcess.BaseMethodForShortSummarization(innerReq);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
 
@@ -146,9 +146,9 @@ namespace CoreVisionFoundation.Controllers.AI
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-            var featureCode = "CVSUM-2025";
+            /*var featureCode = "CVSUM-2025";
             int userId = User.GetUserRecordIdFromCurrentUserClaims();
-            await _permissionProcess.DoesUserHasPermission(userId, featureCode);
+            await _permissionProcess.DoesUserHasPermission(userId, featureCode);*/
             var resp = await _baseAIProcess.BaseMethodForExtensiveSummarization(innerReq);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
 
@@ -163,9 +163,9 @@ namespace CoreVisionFoundation.Controllers.AI
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-            var featureCode = "CVIMG-2025";
+            /*var featureCode = "CVIMG-2025";
             int userId = User.GetUserRecordIdFromCurrentUserClaims();
-            await _permissionProcess.DoesUserHasPermission(userId, featureCode);
+            await _permissionProcess.DoesUserHasPermission(userId, featureCode);*/
             var resp = await _huggingfaceProcess.GenerateHuggingImageAsync(innerReq);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
 
@@ -180,9 +180,9 @@ namespace CoreVisionFoundation.Controllers.AI
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstantsRoot.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-            var featureCode = "CVSTORY-2025";
+            /*var featureCode = "CVSTORY-2025";
             int userId = User.GetUserRecordIdFromCurrentUserClaims();
-            await _permissionProcess.DoesUserHasPermission(userId, featureCode);
+            await _permissionProcess.DoesUserHasPermission(userId, featureCode);*/
             var resp = await _storyProcess.GenerateStory(innerReq);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
 
