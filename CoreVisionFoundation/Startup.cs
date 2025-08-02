@@ -252,13 +252,14 @@ namespace CoreVisionFoundation
 
         public Startup(IConfiguration configuration)
         {
-            var builder = new ConfigurationBuilder()
+            Configuration = configuration;
+            /*var builder = new ConfigurationBuilder()
                 .AddConfiguration(configuration)
                 .SetBasePath(Directory.GetCurrentDirectory()) // Ensure correct path
                 .AddJsonFile("/etc/secrets/appSettings.Production.json", optional: true, reloadOnChange: true) // Load from Render Secret Files
                 .AddEnvironmentVariables(); // Load env variables
 
-            Configuration = builder.Build();
+            Configuration = builder.Build();*/
         }
 
         public void ConfigureServices(IServiceCollection services)

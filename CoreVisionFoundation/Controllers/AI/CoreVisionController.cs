@@ -122,7 +122,7 @@ namespace CoreVisionFoundation.Controllers.AI
 
         [HttpPost("short-summary")]
         [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "ClientEmployee, CompanyAutomation")]
-        public async Task<ActionResult<ApiResponse<HuggingFaceResponseSM>>> SummarizeTextAsync([FromBody] ApiRequest<AzureAIRequestSM> apiRequest)
+        public async Task<ActionResult<ApiResponse<AzureAIResponseSM>>> SummarizeTextAsync([FromBody] ApiRequest<AzureAIRequestSM> apiRequest)
         {
             var innerReq = apiRequest?.ReqData;
             if (innerReq == null)
