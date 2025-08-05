@@ -5,6 +5,7 @@ using CoreVisionBAL.License;
 using CoreVisionConfig.Configuration;
 using CoreVisionDAL.Context;
 using CoreVisionDomainModels.v1.Examination;
+using CoreVisionServiceModels.Foundation.Base.CommonResponseRoot;
 using CoreVisionServiceModels.Foundation.Base.Enums;
 using CoreVisionServiceModels.Foundation.Base.Interfaces;
 using CoreVisionServiceModels.v1.Examination;
@@ -37,52 +38,52 @@ namespace CoreVisionBAL.General.Examination
         #endregion Constructor
 
         #region Eligible For Test
-        public async Task<bool> IsUserEligibleForSubjectTest(int subjectId, int userId)
+        public async Task<BoolResponseRoot> IsUserEligibleForSubjectTest(int subjectId, int userId)
         {
             var totalEligibleTests = await _userTestLicenseDetailsProcess.GetActiveUserLicenseTestCountsByUserId(userId);
             var testCount = await _apiDbContext.ClientSubjectTests.Where(x => x.SubjectId == subjectId && x.UserId == userId).CountAsync();
             if (testCount <= totalEligibleTests)
             {
-                return true;
+                return new BoolResponseRoot(true, "User is eligible for test.");                
             }
             else
             {
-                return false;
+                return new BoolResponseRoot(false, "User is not eligible for test.");
             }
         }
 
-        public async Task<bool> IsUserEligibleForExamTest(int examId, int userId)
+        public async Task<BoolResponseRoot> IsUserEligibleForExamTest(int examId, int userId)
         {
             var totalEligibleTests = await _userTestLicenseDetailsProcess.GetActiveUserLicenseTestCountsByUserId(userId);
             var testCount = await _apiDbContext.ClientExamTests.Where(x => x.ExamId == examId && x.UserId == userId).CountAsync();
             if (testCount <= totalEligibleTests)
             {
-                return true;
+                return new BoolResponseRoot(true, "User is eligible for test.");
             }
             else
             {
-                return false;
+                return new BoolResponseRoot(false, "User is not eligible for test.");
             }
         }
 
-        public async Task<bool> IsUserEligibleForSubjectTopicTest(int topicId, int userId)
+        public async Task<BoolResponseRoot> IsUserEligibleForSubjectTopicTest(int topicId, int userId)
         {
             var totalEligibleTests = await _userTestLicenseDetailsProcess.GetActiveUserLicenseTestCountsByUserId(userId);
             var testCount = await _apiDbContext.ClientTopicTests.Where(x => x.SubjectTopicId == topicId && x.UserId == userId).CountAsync();
             if (testCount <= totalEligibleTests)
             {
-                return true;
+                return new BoolResponseRoot(true, "User is eligible for test.");
             }
             else
             {
-                return false;
+                return new BoolResponseRoot(false, "User is not eligible for test.");
             }
         }
 
         #endregion Eligible For Test
 
         #region User Test Marks For Subject
-        public async Task<int> UserSubjectTestMarksGetRequest(int subjectId, int userId)
+        public async Task<IntResponseRoot> UserSubjectTestMarksGetRequest(int subjectId, int userId)
         {
             if (subjectId < 1 || userId < 1)
             {
@@ -110,7 +111,7 @@ namespace CoreVisionBAL.General.Examination
 
             if (await _apiDbContext.SaveChangesAsync() > 0)
             {
-                return dm.Id;
+                return new IntResponseRoot(dm.Id, "User Subject Test Marks get successfully");
             }
             throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,
                 "Failed to add User Subject Test Marks. See inner exception.",
@@ -175,7 +176,7 @@ namespace CoreVisionBAL.General.Examination
 
         #region User Test Marks For Exam
 
-        public async Task<int> UserExamTestMarksGetRequest(int examId, int userId)
+        public async Task<IntResponseRoot> UserExamTestMarksGetRequest(int examId, int userId)
         {
             if (examId < 1 || userId < 1)
             {
@@ -202,7 +203,7 @@ namespace CoreVisionBAL.General.Examination
 
             if (await _apiDbContext.SaveChangesAsync() > 0)
             {
-                return dm.Id;
+                return new IntResponseRoot(dm.Id, "User Exam Test Marks get successfully");
             }
             throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,
                 "Failed to add User Subject Test Marks. See inner exception.",
@@ -268,7 +269,7 @@ namespace CoreVisionBAL.General.Examination
 
         #region User Test Marks For Subject Topic
 
-        public async Task<int> UserTopicTestMarksGetRequest(int topicId, int userId)
+        public async Task<IntResponseRoot> UserTopicTestMarksGetRequest(int topicId, int userId)
         {
             if (topicId < 1 || userId < 1)
             {
@@ -295,7 +296,7 @@ namespace CoreVisionBAL.General.Examination
 
             if (await _apiDbContext.SaveChangesAsync() > 0)
             {
-                return dm.Id;
+                return new IntResponseRoot(dm.Id, "User Topic Test Marks get successfully");
             }
             throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,
                 "Failed to add Subject Topic Test Marks. See inner exception.",
@@ -399,8 +400,8 @@ namespace CoreVisionBAL.General.Examination
             {
                 return null;
             }
-            var examDm = await _apiDbContext.Subjects.FindAsync(subjectId);
-            if (examDm == null)
+            var subDM = await _apiDbContext.Subjects.FindAsync(subjectId);
+            if (subDM == null)
             {
                 throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Subject Details not found for id: {subjectId}", "Something went wrong, Please try again later");
             }
@@ -431,8 +432,8 @@ namespace CoreVisionBAL.General.Examination
             {
                 return null;
             }
-            var examDm = await _apiDbContext.SubjectTopics.FindAsync(topicId);
-            if (examDm == null)
+            var topicDM = await _apiDbContext.SubjectTopics.FindAsync(topicId);
+            if (topicDM == null)
             {
                 throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Topic Details not found for id: {topicId}", "Something went wrong, Please try again later");
             }

@@ -152,9 +152,9 @@ namespace CoreVisionBAL.General.Examination
                 "Something went wrong while adding new Exam");
         }
 
-        public async Task<bool> AddListOfExams(List<ExamSM> objSM)
+        public async Task<BoolResponseRoot> AddListOfExams(List<ExamSM> objSM)
         {
-            if (objSM == null || objSM.Count == 0)
+            if (objSM.Count == 0)
             {
                 throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,"Failed to add exams, Data not found to add", "Something went wrong while adding new Exam Types");
             }                
@@ -163,9 +163,9 @@ namespace CoreVisionBAL.General.Examination
             {
                 await AddExam(item);
             }
-            return true;
+            return new BoolResponseRoot(true , "Exams added successfully.");
 
-        }
+        }       
 
         #endregion Add
 

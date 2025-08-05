@@ -42,6 +42,35 @@ namespace CoreVisionBAL.General.Examination
 
         #region Count
 
+        #region Exam, Subject, Subject Topic MCQs Count
+
+        public async Task<int> GetMCQsOfExamCount(int examId)
+        {
+            var count = await _apiDbContext.MCQs
+                .Where(x => x.ExamId == examId)
+                .CountAsync();
+
+            return count;
+        }
+        public async Task<int> GetMCQsOfSubjectCount(int subjectId)
+        {
+            var count = await _apiDbContext.MCQs
+                .Where(x => x.SubjectId == subjectId)
+                .CountAsync();         
+
+            return count;
+        }
+
+        public async Task<int> GetMCQsOfSubjectTopicsCount(int subjectTopicId)
+        {
+            var count = await _apiDbContext.MCQs
+                .Where(x => x.SubjectTopicId == subjectTopicId)
+                .CountAsync();
+
+            return count;
+        }
+
+        #endregion Exam, Subject, Subject Topic MCQs Count
         public async Task<int> GetAllMCQCountResponse()
         {
             return await _apiDbContext.MCQs.AsNoTracking().CountAsync();
@@ -51,11 +80,66 @@ namespace CoreVisionBAL.General.Examination
 
         #region Get All
 
+        #region Get All
         public async Task<List<MCQSM>?> GetAllMCQs()
         {
             var list = await _apiDbContext.MCQs.ToListAsync();
             return list == null ? null : _mapper.Map<List<MCQSM>>(list);
         }
+        #endregion Get All
+
+        #region Get By Exam, Subject, Subject Topic Id With count
+
+        public async Task<List<MCQSM>?> GetMCQsOfSubject(int subjectId, int skip, int top)
+        {
+            var list = await _apiDbContext.MCQs
+                .Where(x => x.SubjectId == subjectId)
+                .Skip(skip).Take(top)
+                .ToListAsync();
+
+            if (list.Count == 0)
+            {
+                return new List<MCQSM>();
+            }
+
+            var result = _mapper.Map<List<MCQSM>>(list);           
+
+            return result;
+        }
+
+        public async Task<List<MCQSM>?> GetMCQsOfExam(int examId, int skip, int top)
+        {
+            var list = await _apiDbContext.MCQs
+                .Where(x => x.ExamId == examId)
+                .Skip(skip).Take(top)
+                .ToListAsync();
+            if (list.Count == 0)
+            {
+                return new List<MCQSM>();
+            }
+            var result = _mapper.Map<List<MCQSM>>(list);           
+
+            return result;
+        }
+
+        public async Task<List<MCQSM>?> GetMCQsOfSubjectTopic(int subTopicId, int skip, int top)
+        {
+            var list = await _apiDbContext.MCQs
+                .Where(x => x.SubjectTopicId == subTopicId)
+                .ToListAsync();
+
+            if (list.Count == 0)
+            {
+                return new List<MCQSM>();
+            }
+            var result = _mapper.Map<List<MCQSM>>(list);
+
+            return result;
+        }
+
+        #endregion Get By Exam, Subject, Subject Topic Id With count
+
+        #region Get Random 50 MCQs
 
         public async Task<List<MCQSM>?> GetRandomMCQsOfSubject(int subjectId)
         {
@@ -64,9 +148,10 @@ namespace CoreVisionBAL.General.Examination
                 .OrderBy(x => Guid.NewGuid())
                 .Take(50)
                 .ToListAsync();
-
-            if (list == null) return null;
-
+            if (list.Count == 0)
+            {
+                return new List<MCQSM>();
+            }
             var result = _mapper.Map<List<MCQSM>>(list);
             foreach (var item in result)
             {
@@ -84,9 +169,10 @@ namespace CoreVisionBAL.General.Examination
                 .OrderBy(x => Guid.NewGuid())
                 .Take(50)
                 .ToListAsync();
-
-            if (list == null) return null;
-
+            if (list.Count == 0)
+            {
+                return new List<MCQSM>();
+            }
             var result = _mapper.Map<List<MCQSM>>(list);
             foreach (var item in result)
             {
@@ -104,10 +190,12 @@ namespace CoreVisionBAL.General.Examination
                 .OrderBy(x => Guid.NewGuid())
                 .Take(50)
                 .ToListAsync();
-
-            if (list == null) return null;
-
+            if (list.Count == 0)
+            {
+                return new List<MCQSM>();
+            }
             var result = _mapper.Map<List<MCQSM>>(list);
+
             foreach (var item in result)
             {
                 item.CorrectOption = string.Empty;
@@ -117,6 +205,7 @@ namespace CoreVisionBAL.General.Examination
             return result;
         }
 
+        #endregion Get Random 50 MCQs
 
 
         #endregion Get All
@@ -142,6 +231,24 @@ namespace CoreVisionBAL.General.Examination
 
         #region Add
 
+        #region Add MCQ List For Exams
+        
+        public async Task<BoolResponseRoot> AddListOfMSQsForExams(List<MCQUploadRequestSM> objSM)
+        {
+            if (objSM.Count == 0)
+            {
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Failed to add exam MCQs, Data not found to add", "Something went wrong while adding new Exam MCQs");
+            }
+
+            foreach (var item in objSM)
+            {
+                var request = _mapper.Map<MCQSM>(item);
+                await AddMCQForExam(request, item.Id);
+            }
+            return new BoolResponseRoot(true, "Exams MCQs added successfully.");
+
+        }
+
         public async Task<MCQSM?> AddMCQForExam(MCQSM objSM, int examId)
         {
             if (objSM == null || examId < 1)
@@ -164,6 +271,25 @@ namespace CoreVisionBAL.General.Examination
             throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,
                 $"Failed to add MCQ for ExamId: {examId}",
                 "Something went wrong while adding new MCQ");
+        }
+
+        #endregion Add MCQ List
+
+        #region Add MCQ For Subjects
+
+        public async Task<BoolResponseRoot> AddListOfMSQsForSubjects(List<MCQUploadRequestSM> objSM)
+        {
+            if (objSM.Count == 0)
+            {
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Failed to add Subject MCQs, Data not found to add", "Something went wrong while adding new Subject MCQs");
+            }
+
+            foreach (var item in objSM)
+            {
+                var request = _mapper.Map<MCQSM>(item);
+                await AddMCQForSubject(request, item.Id);
+            }
+            return new BoolResponseRoot(true, "Subjects MCQS added successfully.");
         }
 
         public async Task<MCQSM?> AddMCQForSubject(MCQSM objSM, int subjectId)
@@ -190,6 +316,24 @@ namespace CoreVisionBAL.General.Examination
                 "Something went wrong while adding new MCQ");
         }
 
+        #endregion Add MCQ For Subjects
+
+        #region Add MCQ For Subject Topic
+
+        public async Task<BoolResponseRoot> AddListOfMSQsForSubjectTopics(List<MCQUploadRequestSM> objSM)
+        {
+            if (objSM.Count == 0)
+            {
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Failed to add Subject topic MCQs, Data not found to add", "Something went wrong while adding new Topic Topic MCQs");
+            }
+
+            foreach (var item in objSM)
+            {
+                var request = _mapper.Map<MCQSM>(item);
+                await AddMCQForSubjectTopic(request, item.Id);
+            }
+            return new BoolResponseRoot(true, "Subjects Topic MCQs added successfully.");
+        }
         public async Task<MCQSM?> AddMCQForSubjectTopic(MCQSM objSM, int subjectTopicId)
         {
             if (objSM == null || subjectTopicId < 1)
@@ -214,10 +358,16 @@ namespace CoreVisionBAL.General.Examination
                 "Something went wrong while adding new MCQ");
         }
 
+        #endregion Add MCQ For Subject Topic
+
         #endregion Add
 
         #region Answer For MCQ
-
+        public async Task<BoolResponseRoot> ValidateAnswer(int mcqId, string answer)
+        {
+            var response = await IsAnswerCorrect(mcqId, answer);
+            return new BoolResponseRoot(response, response ? "Answer is correct" : "Answer is incorrect");
+        }
         public async Task<bool> IsAnswerCorrect(int mcqId, string answer)
         {
             if (mcqId < 1 || string.IsNullOrWhiteSpace(answer))
@@ -231,7 +381,8 @@ namespace CoreVisionBAL.General.Examination
                 throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "MCQ not found", "MCQ not found");
             }
 
-            return string.Equals(dm.CorrectOption.Trim(), answer.Trim(), StringComparison.OrdinalIgnoreCase);
+            var response = string.Equals(dm.CorrectOption.Trim(), answer.Trim(), StringComparison.OrdinalIgnoreCase);
+            return response;
         }
 
         public async Task<MCQAnswerSM?> CorrectAnswer(int id)

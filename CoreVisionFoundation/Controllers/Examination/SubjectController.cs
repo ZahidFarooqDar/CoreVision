@@ -105,6 +105,22 @@ namespace CoreVisionFoundation.Controllers.Examination
             return Ok(ModelConverter.FormNewSuccessResponse(ret));
         }
 
+        [HttpPost("list")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin")]
+        public async Task<ActionResult<ApiResponse<SubjectSM>>> AddListofSubjects([FromBody] ApiRequest<List<SubjectSM>> apiRequest)
+        {
+            #region Check Request
+            var innerReq = apiRequest?.ReqData;
+            if (innerReq == null)
+            {
+                return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
+            }
+            #endregion Check Request
+
+            var ret = await _subjectProcess.AddListOfSubjects(innerReq);
+            return Ok(ModelConverter.FormNewSuccessResponse(ret));
+        }
+
         [HttpPost("assign")]
         [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin")]
         public async Task<ActionResult<ApiResponse<SubjectSM>>> AssignSubjectToExam([FromBody] ApiRequest<ExamSubjectsSM> apiRequest)

@@ -1,5 +1,4 @@
-﻿using CoreVisionBAL.Foundation.Web;
-using CoreVisionBAL.General.Examination;
+﻿using CoreVisionBAL.General.Examination;
 using CoreVisionFoundation.Controllers.Base;
 using CoreVisionFoundation.Security;
 using CoreVisionServiceModels.Foundation.Base.CommonResponseRoot;
@@ -98,6 +97,22 @@ namespace CoreVisionFoundation.Controllers.Examination
             #endregion Check Request
 
             var ret = await _examProcess.AddExam(innerReq);
+            return Ok(ModelConverter.FormNewSuccessResponse(ret));
+        }
+
+        [HttpPost("list")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin")]
+        public async Task<ActionResult<ApiResponse<BoolResponseRoot>>> AddListOfExams([FromBody] ApiRequest<List<ExamSM>> apiRequest)
+        {
+            #region Check Request
+            var innerReq = apiRequest?.ReqData;
+            if (innerReq == null)
+            {
+                return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
+            }
+            #endregion Check Request
+
+            var ret = await _examProcess.AddListOfExams(innerReq);
             return Ok(ModelConverter.FormNewSuccessResponse(ret));
         }
 

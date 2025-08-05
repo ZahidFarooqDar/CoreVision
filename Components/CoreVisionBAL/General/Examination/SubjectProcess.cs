@@ -124,6 +124,21 @@ namespace CoreVisionBAL.General.Examination
                 "Something went wrong while adding new Subject");
         }
 
+        public async Task<BoolResponseRoot> AddListOfSubjects(List<SubjectSM> objSM)
+        {
+            if (objSM.Count == 0)
+            {
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Failed to add subjects, Data not found to add", "Something went wrong while adding new Subjects");
+            }
+
+            foreach (var item in objSM)
+            {
+                await AddSubject(item);
+            }
+            return new BoolResponseRoot(true, "Subjects added successfully.");
+
+        }
+
         #endregion Add
 
         #region Assign Subject to Exam
