@@ -266,10 +266,6 @@ namespace CoreVisionBAL.AppUsers
                 {
                     throw new CoreVisionException(ApiErrorTypeSM.Access_Denied_Log, $"Application User With Email Id: {objSM.EmailId} Already Existed...Choose Another Email Id", $"Application User With Email Id: {objSM.LoginId} Already Existed...Choose Another EmailId");
                 }
-                if (objSM.DateOfBirth == default)
-                {
-                    objSM.DateOfBirth = objDM.DateOfBirth;
-                }
 
                 var smProperties = objSM.GetType().GetProperties();
                 var dmProperties = objDM.GetType().GetProperties();

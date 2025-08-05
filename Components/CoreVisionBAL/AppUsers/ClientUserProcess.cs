@@ -28,12 +28,13 @@ namespace CoreVisionBAL.AppUsers
         private readonly ClientCompanyDetailProcess _clientCompanyDetailProcess;
         private readonly EmailProcess _emailProcess;
         private readonly UserLicenseDetailsProcess _userLicenseDetailsProcess;
+        private readonly UserTestLicenseDetailsProcess _userTestLicenseDetailsProcess;
 
         #endregion Properties
 
         #region Constructor
-        public ClientUserProcess(IMapper mapper, ILoginUserDetail loginUserDetail, ApiDbContext apiDbContext,
-            ClientCompanyDetailProcess clientCompanyDetailProcess, EmailProcess emailProcess,UserLicenseDetailsProcess userLicenseDetailsProcess,
+        public ClientUserProcess(IMapper mapper, ILoginUserDetail loginUserDetail, ApiDbContext apiDbContext,UserTestLicenseDetailsProcess userTestLicenseDetailsProcess,
+            ClientCompanyDetailProcess clientCompanyDetailProcess, EmailProcess emailProcess, UserLicenseDetailsProcess userLicenseDetailsProcess,
             IPasswordEncryptHelper passwordEncryptHelper, APIConfiguration apiConfiguration)
             : base(mapper, loginUserDetail, apiDbContext)
         {
@@ -42,6 +43,7 @@ namespace CoreVisionBAL.AppUsers
             _clientCompanyDetailProcess = clientCompanyDetailProcess;
             _emailProcess = emailProcess;
             _userLicenseDetailsProcess = userLicenseDetailsProcess;
+            _userTestLicenseDetailsProcess = userTestLicenseDetailsProcess;
         }
 
         #endregion Constructor
@@ -129,6 +131,16 @@ namespace CoreVisionBAL.AppUsers
                     sm.ProfilePicturePath = await ConvertToBase64(sm.ProfilePicturePath);
                 }
                 return sm;
+            }
+            return null;
+        }
+
+        public async Task<ClientUserSM?> CheckEmailExisting(string email)
+        {
+            ClientUserDM? clientUserDM = await _apiDbContext.ClientUsers.AsNoTracking().FirstOrDefaultAsync(x => x.EmailId == email);
+            if (clientUserDM != null)
+            {
+                return _mapper.Map<ClientUserSM>(clientUserDM);
             }
             return null;
         }
@@ -225,7 +237,7 @@ namespace CoreVisionBAL.AppUsers
         /// <param name="clientUserSM"></param>
         /// <returns></returns>
         /// <exception cref="CoreVisionException"></exception>
-        public async Task<BoolResponseRoot?> AddNewUser(ClientUserSM signUpSM, string companyCode, string link)
+        /*public async Task<BoolResponseRoot?> AddNewUser(ClientUserSM signUpSM, string companyCode, string link)
         {
             if (signUpSM == null)
             {
@@ -244,7 +256,7 @@ namespace CoreVisionBAL.AppUsers
             {
                 throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Please provide FirstName ", "Please provide FirstName");
             }
-
+            var otp = GenerateSixDigitOTP();
             var existingUserWithEmail = await GetClientUserByEmail(signUpSM.EmailId);
             var existingCompanyDetail = await _clientCompanyDetailProcess.GetClientCompanyByCompanyCode(companyCode);
             if (existingUserWithEmail != null)
@@ -269,11 +281,14 @@ namespace CoreVisionBAL.AppUsers
                 {
                     Email = existingUserWithEmail.EmailId
                 };
-                await SendEmailVerificationLink(obj, link);
-                return new BoolResponseRoot(true, "Your account has been created Successfully, Please verify email to Login in to your account");
-                /*throw new CodeVisionException(ApiErrorTypeSM.InvalidInputData_NoLog,
-                    "This email is already registered. Please log in using your credentials or reset your password if you've forgotten it.",
-                    "Email already registered, consider logging in or resetting your password.");*/
+                var optRequest = new EmailOtpDM()
+                {
+                    Email = existingUserWithEmail.EmailId,
+                    Otp = otp
+                }
+                await SendEmailVerificationOTP(obj, otp);
+                return new BoolResponseRoot(true, " Your account has been successfully created. Please check your email for verification.");
+               
             }
             var existingUserWithLoginId = await GetClientUserByLoginId(signUpSM.LoginId);
             if (existingUserWithLoginId != null)
@@ -327,8 +342,97 @@ namespace CoreVisionBAL.AppUsers
                 transaction.Rollback();
                 throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Something went wrong while adding your details, Please try again later");
             }
+        }*/
+
+        public async Task<BoolResponseRoot?> AddNewUser(ClientUserSM signUpSM, string companyCode)
+        {
+            // Validate input
+            if (signUpSM == null)
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Please provide your sign-up details.");
+
+            if (signUpSM.LoginId.IsNullOrEmpty() || signUpSM.LoginId.Length < 5)
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_Log, "Login ID must be at least 5 characters long.");
+
+            if (signUpSM.EmailId.IsNullOrEmpty())
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Please enter a valid email address.");
+
+            if (signUpSM.FirstName.IsNullOrEmpty())
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Please provide your first name.");
+
+            if (signUpSM.PasswordHash.IsNullOrEmpty())
+                throw new CoreVisionException(ApiErrorTypeSM.Access_Denied_Log, "Password is mandatory.");
+
+            // Check for existing email or login ID
+            var existingUserWithEmail = await CheckEmailExisting(signUpSM.EmailId);
+            if (existingUserWithEmail != null)
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "This email address is already registered. Please use a different email or log in.");
+
+            var existingUserWithLoginId = await GetClientUserByLoginId(signUpSM.LoginId);
+            if (existingUserWithLoginId != null)
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "This login ID is already in use. Please choose a different one.");
+
+            var otp = GenerateSixDigitOTP();
+
+            // Begin transaction
+            using var transaction = await _apiDbContext.Database.BeginTransactionAsync();
+            try
+            {
+                var companyDetail = await _clientCompanyDetailProcess.GetClientCompanyByCompanyCode(companyCode);
+                if (companyDetail == null)
+                    throw new CoreVisionException(ApiErrorTypeSM.NoRecord_Log, $"Company with code '{companyCode}' not found.", "Company not found. Please contact support.");
+
+                // Map & prepare user entity
+                var objDM = _mapper.Map<ClientUserDM>(signUpSM);
+                objDM.PasswordHash = await _passwordEncryptHelper.ProtectAsync<string>(signUpSM.PasswordHash);
+                objDM.ClientCompanyDetailId = companyDetail.Id;
+                objDM.RoleType = RoleTypeDM.ClientEmployee;
+                objDM.CreatedBy = _loginUserDetail.LoginId;
+                objDM.CreatedOnUTC = DateTime.UtcNow;
+                objDM.IsEmailConfirmed = false;
+                objDM.IsPhoneNumberConfirmed = false;
+                objDM.LoginStatus = LoginStatusDM.Enabled;
+
+                // Save profile picture if available
+                objDM.ProfilePicturePath = !signUpSM.ProfilePicturePath.IsNullOrEmpty()
+                    ? await SaveFromBase64(signUpSM.ProfilePicturePath)
+                    : null;
+
+                // Save user
+                await _apiDbContext.ClientUsers.AddAsync(objDM);
+                await _apiDbContext.SaveChangesAsync();
+
+                // Save OTP
+                var emailOtpData = new EmailOtpDM
+                {
+                    EmailId = objDM.EmailId,
+                    OTP = otp,
+                    OTPExpiry = DateTime.UtcNow.AddMinutes(30),
+                    CreatedOnUTC = DateTime.UtcNow,
+                    CreatedBy = _loginUserDetail.LoginId
+                };
+                await _apiDbContext.EmailOtps.AddAsync(emailOtpData);
+                await _apiDbContext.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                // Send OTP via email
+                await SendEmailVerificationOTP(new EmailConfirmationSM { Email = objDM.EmailId }, otp);
+
+                return new BoolResponseRoot(true, "Account created successfully. Please verify your email within 30 minutes to activate your account.");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, ex.InnerException.Message, "Something went wrong. Please try again later.");
+            }
         }
 
+
+        public long GenerateSixDigitOTP()
+        {
+            var random = new Random();
+            return random.Next(100000, 1000000); 
+        }
 
         #endregion Add New Credit App User
 
@@ -366,7 +470,7 @@ namespace CoreVisionBAL.AppUsers
         /// </returns>
         /// <exception cref="CoreVisionException"></exception>
 
-        public async Task<ClientUserSM> UpdateClientUser(int userId, ClientUserSM objSM,bool isSocialMediaUpdation = false)
+        public async Task<ClientUserSM> UpdateClientUser(int userId, ClientUserSM objSM, bool isSocialMediaUpdation = false)
         {
             if (userId == null)
             {
@@ -379,7 +483,7 @@ namespace CoreVisionBAL.AppUsers
             }
 
             ClientUserDM objDM = await _apiDbContext.ClientUsers.FindAsync(userId);
-            
+
 
             if (objSM.LoginId != objDM.LoginId)
             {
@@ -403,7 +507,7 @@ namespace CoreVisionBAL.AppUsers
             {
                 objSM.Id = objDM.Id;
                 objSM.PasswordHash = objDM.PasswordHash;
-                objSM.ClientCompanyDetailId =  objDM.ClientCompanyDetailId;
+                objSM.ClientCompanyDetailId = objDM.ClientCompanyDetailId;
                 objSM.LoginId = objDM.LoginId;
                 objSM.EmailId = objDM.EmailId;
                 if (!objSM.ProfilePicturePath.IsNullOrEmpty())
@@ -422,14 +526,8 @@ namespace CoreVisionBAL.AppUsers
                 {
                     objSM.ProfilePicturePath = objDM.ProfilePicturePath;
                 }
-
-
-                if (objSM.DateOfBirth == default)
-                {
-                    objSM.DateOfBirth = objDM.DateOfBirth;
-                }
                 //Todo: Check how to handle LoginStatus, IsEmailConfirmed and IsPhoneNumberVerified
-                if(isSocialMediaUpdation == true)
+                if (isSocialMediaUpdation == true)
                 {
                     objSM.IsEmailConfirmed = true;
                 }
@@ -640,14 +738,23 @@ namespace CoreVisionBAL.AppUsers
             {
                 // Prepare email subject and body
                 var subject = "Your Login ID Request";
-                var body = $"Hi {user.FirstName},<br/><br/>" +
-                           "We received a request to retrieve your Login ID associated with this email.<br/><br/>" +
-                           $"Your Login ID is: <b>{user.LoginId}</b><br/><br/>" +
-                           "If you did not request this information, please ignore this email. " +
-                           "If you have any questions or need further assistance, feel free to contact our support team.<br/><br/>" +
-                           "Thank you,<br/>" +
-                           "The Support Team";
-
+                var body = $@"
+                             <div style='font-family: Arial, sans-serif;'>
+                                 <p>Hi {user.FirstName},</p>
+                                 <p>We received a request to retrieve your login ID associated with this email address.</p>
+                                 <p>Your login ID is:</p>
+                                 <div style='text-align: center; margin: 20px 0;'>
+                                     <span style='font-size: 24px; font-weight: bold;'>{user.LoginId}</span>
+                                 </div>
+                                 <p>If you did not request this information, please ignore this email.</p>
+                                 <p>Warm regards,<br/>Team CoreVision</p>
+                             
+                                 <!-- Footer -->
+                                 <div style='background-color: #f4f4f4; padding: 20px; text-align: center; font-size: 12px; color: #777777;'>
+                                     <p>Please note: This is an automated email, and replies to this message are not monitored.</p>
+                                     <p>&copy; {DateTime.Now.Year} CoreVision. All rights reserved.</p>
+                                 </div>
+                             </div>";
                 _emailProcess.SendEmail(objSM.Email, subject, body);
 
                 // Return success response
@@ -774,7 +881,7 @@ namespace CoreVisionBAL.AppUsers
                 throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Email cannot be empty.");
 
             var user = (from c in _apiDbContext.ClientUsers
-                        where c.EmailId.ToUpper() == objSM.Email.ToUpper()
+                        where c.EmailId.ToUpper() == objSM.Email.ToUpper() || c.LoginId.ToUpper() == objSM.Email.ToUpper()
                         select new { ClientUser = c }).FirstOrDefault();
 
             if (user == null)
@@ -784,6 +891,8 @@ namespace CoreVisionBAL.AppUsers
 
             return (objSM.Email);
         }
+
+        
 
         private (string email, string pwd) ValidateUserFromDatabaseandGetEmail(ForgotPasswordSM forgotPassword)
         {
@@ -802,6 +911,120 @@ namespace CoreVisionBAL.AppUsers
         }
 
         #endregion Validate User and Send Email
+
+        #region Send.Resend/Verify verification OTP email
+
+        public async Task<BoolResponseRoot> SendEmailVerificationOTP(EmailConfirmationSM objSM, long otp)
+        {
+            if (string.IsNullOrWhiteSpace(objSM.Email))
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Email cannot be empty.");
+
+            var email = ValidateUserUsingEmail(objSM);
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                var subject = "Email Verification OTP";
+
+                var body = $@"
+                             <div style='font-family: Arial, sans-serif;'>
+                                 <p>Hi {objSM.Email},</p>
+                                 <p>Your email verification OTP is:</p>
+                                 <div style='text-align: center; margin: 20px 0;'>
+                                     <span style='font-size: 24px; font-weight: bold;'>{otp}</span>
+                                 </div>
+                                 <p>This OTP is valid for <strong>30 minutes</strong>.</p>
+                                 <p>If you did not request an email verification, please ignore this email.</p>
+                                 <p>Warm regards,<br/>Team CoreVision</p>
+                             
+                                 <!-- Footer -->
+                                 <div style='background-color: #f4f4f4; padding: 20px; text-align: center; font-size: 12px; color: #777777;'>
+                                     <p>Please note: This is an automated email, and replies to this message are not monitored.</p>
+                                 </div>
+                             </div>";
+
+                _emailProcess.SendEmail(objSM.Email, subject, body);
+                return new BoolResponseRoot(true, "OTP has been sent successfully for email verification.");
+            }
+            else
+            {
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"No user with email '{objSM.Email}' found.");
+            }
+        }
+
+        public async Task<BoolResponseRoot> ConfirmEmailOtpAsync(VerifyEmailOTPRequestSM request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Email) || request.OTP == null)
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Email and OTP are required.", "Invalid input");
+
+            var user = await _apiDbContext.ClientUsers.FirstOrDefaultAsync(u => u.EmailId == request.Email);
+            if (user == null)
+            {
+                throw new CoreVisionException(ApiErrorTypeSM.NoRecord_Log,$"User with Email: {request.Email} not found for email otp verification" ,$"User Not Found");
+            }
+            if(user.IsEmailConfirmed == true)
+            {
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Email already confirmed.", "Email already confirmed.");
+            }
+            var otpData = await _apiDbContext.EmailOtps.FirstOrDefaultAsync(u => u.EmailId == request.Email);
+
+            if(otpData == null)
+            {
+                throw new CoreVisionException(ApiErrorTypeSM.NoRecord_Log, $"OTP not found for email: {request.Email}", $"OTP not found for email: {request.Email}");
+            }
+            
+            if (otpData.OTPExpiry < DateTime.Now)
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "OTP has expired. Please request a new one.");
+
+            if (otpData.OTP != request.OTP)
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog,"", "Invalid OTP. Please try again.");
+
+            // OTP verified successfully
+            user.IsEmailConfirmed = true;
+            var res = await _userTestLicenseDetailsProcess.AddTrialLicenseDetails(user.Id);
+            if (res == null)
+            {
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Something went wrong while adding trial license details to user with Id: {user.Id}", "Something went wrong while adding trial license details");
+            }
+            _apiDbContext.ClientUsers.Update(user);
+            if(await _apiDbContext.SaveChangesAsync() > 0)
+            {                
+                return new BoolResponseRoot(true, "Email confirmed successfully.Login to continue.");
+            }
+            throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"Something went wrong while confirming email for UserId: {user.Id}", "Something went wrong while confirming email");
+        }
+
+        public async Task<BoolResponseRoot> ResendEmailOTPVerification(EmailConfirmationSM objSM)
+        {
+            if (string.IsNullOrWhiteSpace(objSM.Email))
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "Email cannot be empty.");
+
+            var user = _apiDbContext.EmailOtps.Where(x => x.EmailId.ToUpper() == objSM.Email.ToUpper()).FirstOrDefault();
+            if (user == null)
+            {
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"No User with email '{objSM.Email}' found.", $"No User with email '{objSM.Email}' found.");
+            }
+            if (user.OTPExpiry > DateTime.Now)
+            {
+                var timeRemaining = user.OTPExpiry - DateTime.Now;
+                var minutes = timeRemaining.Minutes;
+                var seconds = timeRemaining.Seconds;
+
+                throw new CoreVisionException(
+                    ApiErrorTypeSM.Fatal_Log,
+                    $"OTP is still valid for {minutes:D2} minute(s) and {seconds:D2} second(s).",
+                    $"OTP has already been sent to email '{objSM.Email}'. Please wait {minutes:D2} minute(s) before trying again."
+                    );
+            }
+            var otp = GenerateSixDigitOTP();
+            user.OTP = otp;
+            user.OTPExpiry = DateTime.Now.AddMinutes(30);
+            _apiDbContext.SaveChanges();
+            await SendEmailVerificationOTP(new EmailConfirmationSM { Email = objSM.Email }, otp);
+
+            return new BoolResponseRoot(true, "OTP Sent Successfully, Verify your email to activate your account.");
+        }
+
+
+        #endregion Send.Resend/Verify verification OTP email
 
         #region Confirm Email
 
@@ -835,7 +1058,10 @@ namespace CoreVisionBAL.AppUsers
             {
                 throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"No User with email '{objSM.Email}' found.");
             }
-        }
+        }      
+        
+
+
         /// <summary>
         /// Validation of Password Link that has been sent via Email.
         /// </summary>

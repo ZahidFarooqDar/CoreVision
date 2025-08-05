@@ -11,6 +11,7 @@ using CoreVisionServiceModels.Foundation.Base.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using CoreVisionBAL.ExceptionHandler;
+using System.Text.RegularExpressions;
 
 namespace CoreVisionBAL.AppUsers
 {
@@ -152,6 +153,8 @@ namespace CoreVisionBAL.AppUsers
 
         #region Additional Methods
 
+        #region Additional Methods
+
         /// <summary>
         /// Saves uploaded image (base64)
         /// </summary>
@@ -202,6 +205,50 @@ namespace CoreVisionBAL.AppUsers
                 throw;
             }
         }
+
+        /// <summary>
+        /// Converts an image file to a base64 encoded string.
+        /// </summary>
+        /// <param name="filePath">The path to the image file.</param>
+        /// <returns>
+        /// If successful, returns the base64 encoded string; 
+        /// otherwise, returns null.
+        /// </returns>
+        public async Task<string?> ConvertToBase64(string filePath)
+        {
+            try
+            {
+                // Read all bytes from the file asynchronously
+                byte[] imageBytes = await File.ReadAllBytesAsync(filePath);
+
+                // Convert the bytes to a base64 string
+                return Convert.ToBase64String(imageBytes);
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions and return null
+                //return ex.Message;
+                return null;
+            }
+        }
+        /// <summary>
+        /// Validates whether the provided string is a valid Base64-encoded string.
+        /// </summary>
+        /// <param name="base64">The input string to validate.</param>
+        /// <returns>
+        /// <c>true</c> if the input string is a valid Base64-encoded string; otherwise, <c>false</c>.
+        /// </returns>
+
+        public bool IsBase64String(string base64)
+        {
+            if (string.IsNullOrWhiteSpace(base64)) return false;
+
+            if (base64.Length % 4 != 0) return false;
+
+            return Regex.IsMatch(base64, @"^[a-zA-Z0-9\+/]*={0,2}$");
+        }
+
+        #endregion Additional Methods
 
         #endregion Additional Methods
 

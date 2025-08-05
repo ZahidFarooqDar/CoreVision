@@ -13,7 +13,6 @@ namespace CoreVisionServiceModels.AppUser.Login
         public RoleTypeSM RoleType { get; set; }
         public string LoginId { get; set; }
         public string FirstName { get; set; }
-        public string MiddleName { get; set; }
         public string LastName { get; set; }
         public string EmailId { get; set; }
 
@@ -25,6 +24,5 @@ namespace CoreVisionServiceModels.AppUser.Login
         public bool IsPhoneNumberConfirmed { get; set; }
         public bool IsEmailConfirmed { get; set; }
         public LoginStatusSM LoginStatus { get; set; }
-        public DateTime? DateOfBirth { get; set; }
     }
 }

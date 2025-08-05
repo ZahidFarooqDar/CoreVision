@@ -46,13 +46,27 @@ namespace CoreVisionFoundation.Security
 
         public async Task<JwtSecurityToken> UnprotectAsync(string decryptionKey, string token)
         {
-            string text = await UnprotectToJwtStringAsync(decryptionKey, token);
-            if (string.IsNullOrWhiteSpace(text))
+            
+            TokenValidationParameters validationParameters = new TokenValidationParameters
             {
-                throw new Exception("Could not unprotect token.");
+                ValidateIssuer = true,
+                ValidIssuer = _tokenIssuier,
+                ValidateAudience = false,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(decryptionKey)),
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.FromMinutes(5.0)
+            };
+            JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+            try
+            {
+                jwtSecurityTokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
+                return (validatedToken as JwtSecurityToken) ?? throw new SecurityTokenException("Token could not be cast to JwtSecurityToken.");
             }
-
-            return ((SecurityTokenHandler)new JwtSecurityTokenHandler()).ReadToken(text) as JwtSecurityToken;
+            catch (Exception innerException)
+            {
+                throw new SecurityTokenException("Token validation failed.", innerException);
+            }
         }
     }
 }

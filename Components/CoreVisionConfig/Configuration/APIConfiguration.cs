@@ -12,6 +12,8 @@
         public string SuperAdminUserAdditionKey { get; set; }
         public string BlogApiUrl { get; set; }
         public int ValidityInDays { get; set; }
+        public int TrialLicenseTestCount { get; set; }
+        public int TestLicenseTestCount { get; set; }
         public int RedeemCodeValidity { get; set; }
 
         public string AzureProcessingModel { get; set; }

@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.OData.Query;
 
 namespace CoreVisionFoundation.Controllers.License
 {
-    [Route("api/v1/[controller]")]
+    /*[Route("api/v1/[controller]")]
     public class UserLicenseDetailsController : ApiControllerWithOdataRoot<UserLicenseDetailsSM>
     {
         #region Properties
@@ -212,5 +212,5 @@ namespace CoreVisionFoundation.Controllers.License
         }
 
         #endregion Trial
-    }
+    }*/
 }

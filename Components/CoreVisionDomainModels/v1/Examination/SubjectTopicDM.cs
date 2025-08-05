@@ -9,7 +9,5 @@ namespace CoreVisionDomainModels.v1.Examination
         public int SubjectId { get; set; }
         public virtual SubjectDM Subject { get; set; }
         public ICollection<MCQDM> MCQs { get; set; }
-        public ICollection<SyllabusDataDM> SyllabusData { get; set; }
-        public ICollection<ExamTopicDM> ExamSubjectTopics { get; set; }
     }
 }

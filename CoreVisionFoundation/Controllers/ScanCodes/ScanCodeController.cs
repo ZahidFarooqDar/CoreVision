@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.OData.Query;
 
 namespace CoreVisionFoundation.Controllers.ScanCodes
 {
-    [ApiController]
+    /*[ApiController]
     [Route("api/v1/[controller]")]
     public class ScanCodeController : ApiControllerWithOdataRoot<ScanCodesFormatSM>
     {
@@ -159,9 +159,9 @@ namespace CoreVisionFoundation.Controllers.ScanCodes
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-            /*var featureCode = "CVBARCODE-2025";
+            *//*var featureCode = "CVBARCODE-2025";
             int userId = User.GetUserRecordIdFromCurrentUserClaims();
-            await _permissionProcess.DoesUserHasPermission(userId, featureCode);*/
+            await _permissionProcess.DoesUserHasPermission(userId, featureCode);*//*
             var barcodeImageData = await _scanCodesProcess.GenerateQRcode(innerReq);
 
             return ModelConverter.FormNewSuccessResponse(barcodeImageData);
@@ -181,9 +181,9 @@ namespace CoreVisionFoundation.Controllers.ScanCodes
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-            /*var featureCode = "CVBARCODE-2025";
+            *//*var featureCode = "CVBARCODE-2025";
             int userId = User.GetUserRecordIdFromCurrentUserClaims();
-            await _permissionProcess.DoesUserHasPermission(userId, featureCode);*/
+            await _permissionProcess.DoesUserHasPermission(userId, featureCode);*//*
             var barcodeImageData = await _scanCodesProcess.GenerateCode(innerReq);
 
             return ModelConverter.FormNewSuccessResponse(barcodeImageData);
@@ -191,5 +191,5 @@ namespace CoreVisionFoundation.Controllers.ScanCodes
         }
 
         #endregion Zxing
-    }
+    }*/
 }

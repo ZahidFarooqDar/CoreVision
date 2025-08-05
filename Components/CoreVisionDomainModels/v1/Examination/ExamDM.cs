@@ -6,11 +6,10 @@ namespace CoreVisionDomainModels.v1.Examination
     {
         public string ExamName { get; set; }
 
-        public string ExamDescription { get; set; }
+        public string? ExamDescription { get; set; }
         public string ConductedBy { get; set; } = "JKSSB"; // Default to JKSSB
+        public bool IsActive { get; set; } = true;
         public ICollection<MCQDM> MCQs { get; set; }
-        public ICollection<SyllabusDataDM> SyllabusData { get; set; }
-        public ICollection<ExamTopicDM> ExamSubjectTopics { get; set; }
 
     }
 }

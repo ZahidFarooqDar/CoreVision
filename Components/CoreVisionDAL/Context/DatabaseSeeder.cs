@@ -6,17 +6,22 @@ using System;
 using CoreVisionDomainModels.Enums;
 using CoreVisionDomainModels.v1.General.ScanCodes;
 using CoreVisionDomainModels.v1.General.License;
+using CoreVisionDomainModels.v1.Examination;
 
 namespace CoreVisionDAL.Context
 {
     public class DatabaseSeeder<T> where T : EfCoreContextRoot
     {
+        #region Setup Database Seed Data
         public void SetupDatabaseWithSeedData(ModelBuilder modelBuilder)
         {
             var defaultCreatedBy = "SeedAdmin";
             SeedDummyCompanyData(modelBuilder, defaultCreatedBy);
         }
-        //public bool SetupDatabaseWithTestData(T context, Func<string, string> encryptorFunc)
+
+        #endregion Setup Database Seed Data
+
+        #region Setup Database With Test Data
         public async Task<bool> SetupDatabaseWithTestData(T context, Func<string, string> encryptorFunc)
         {
             var defaultCreatedBy = "SeedAdmin";
@@ -30,15 +35,22 @@ namespace CoreVisionDAL.Context
                 SeedScanCodesAdminUsers(apiDb, defaultCreatedBy);
                 SeedLicenseTypes(apiDb, defaultCreatedBy);
                 SeedFeatures(apiDb, defaultCreatedBy);
-                SeedUserLicenseDetails(apiDb, defaultCreatedBy);
+                SeedTestLicenseTypes(apiDb, defaultCreatedBy);
                 seedFeatureLicenseDetails(apiDb, defaultCreatedBy);
+                SeedUserLicenseDetails(apiDb, defaultCreatedBy);
+                SeedTestUserLicenseDetails(apiDb, defaultCreatedBy);
+                SeedExamDetails(apiDb, defaultCreatedBy);
+                SeedSubjectDetails(apiDb, defaultCreatedBy);
+                SeedExamSubjectDetails(apiDb, defaultCreatedBy);
+                SeedSubjectTopics(apiDb, defaultCreatedBy);
+                SeedMCQs(apiDb, defaultCreatedBy);
 
                 return true;
             }
             return false;
         }
 
-
+        #endregion Setup Database With Test Data
 
         #region Data To Entities
 
@@ -48,7 +60,7 @@ namespace CoreVisionDAL.Context
             var codeVisionCompany = new ClientCompanyDetailDM()
             {
                 Id = 1,
-                Name = "Core Vision",
+                Name = "core-vision",
                 CompanyCode = "123",
                 Description = "Software Development Company",
                 ContactEmail = "corevision@outlook.com",
@@ -73,7 +85,6 @@ namespace CoreVisionDAL.Context
             {
                 RoleType = RoleTypeDM.SuperAdmin,
                 FirstName = "Super",
-                MiddleName = "Admin",
                 EmailId = "saone@email.com",
                 LastName = "One",
                 LoginId = "super1",
@@ -97,7 +108,6 @@ namespace CoreVisionDAL.Context
             {
                 RoleType = RoleTypeDM.SystemAdmin,
                 FirstName = "System",
-                MiddleName = "Admin",
                 EmailId = "sysone@email.com",
                 LastName = "One",
                 LoginId = "system1",
@@ -122,7 +132,6 @@ namespace CoreVisionDAL.Context
                 ClientCompanyDetailId = 1,
                 RoleType = RoleTypeDM.ClientAdmin,
                 FirstName = "Client",
-                MiddleName = "User",
                 EmailId = "clientuser1@email.com",
                 LastName = "One",
                 LoginId = "clientuser1",
@@ -140,7 +149,6 @@ namespace CoreVisionDAL.Context
                 ClientCompanyDetailId = 1,
                 RoleType = RoleTypeDM.ClientAdmin,
                 FirstName = "Client",
-                MiddleName = "user",
                 EmailId = "clientuser2@email.com",
                 LastName = "Two",
                 LoginId = "clientuser2",
@@ -542,7 +550,58 @@ namespace CoreVisionDAL.Context
                 StripePriceId = "price_1QvXFiIprUCdDPzTHefLTWUh",
             };
             
-            apiDb.AddRange(license1, license2, license3, license4);
+            apiDb.LicenseTypes.AddRange(license1, license2, license3, license4);
+
+            apiDb.SaveChanges();
+        }
+
+        private void SeedTestLicenseTypes(ApiDbContext apiDb, string defaultCreatedBy)
+        {
+            var license1 = new TestLicenseTypeDM()
+            {
+                Title = "Trial",
+                Description = "Trial version allowing users to attempt 2 tests — a great way to explore the platform.",
+                TestCountValidity = 2,
+                Amount = 0,
+                LicenseTypeCode = "1TR2025TEST0002",
+                CreatedBy = defaultCreatedBy,
+                CreatedOnUTC = DateTime.UtcNow,
+            };
+
+            var license2 = new TestLicenseTypeDM()
+            {
+                Title = "Basic",
+                Description = "Access 10 tests, including exam, subject, or topic-based — ideal for getting started.",
+                TestCountValidity = 10,
+                Amount = 49,
+                LicenseTypeCode = "1TR2025TEST0010",
+                CreatedBy = defaultCreatedBy,
+                CreatedOnUTC = DateTime.UtcNow,
+            };
+
+            var license3 = new TestLicenseTypeDM()
+            {
+                Title = "Standard",
+                Description = "Includes 30 test attempts across exams, subjects, and topics — suited for regular learners.",
+                TestCountValidity = 30,
+                Amount = 99,
+                LicenseTypeCode = "1TR2025TEST0030",
+                CreatedBy = defaultCreatedBy,
+                CreatedOnUTC = DateTime.UtcNow,
+            };
+
+            var license4 = new TestLicenseTypeDM()
+            {
+                Title = "Premium",
+                Description = "Unlock 50 full test sessions — covering exams, subjects, and topic-wise practice for thorough preparation.",
+                TestCountValidity = 50,
+                Amount = 149,
+                LicenseTypeCode = "1TR2025TEST0050",
+                CreatedBy = defaultCreatedBy,
+                CreatedOnUTC = DateTime.UtcNow,
+            };
+
+            apiDb.TestLicenseTypes.AddRange(license1, license2, license3, license4);
 
             apiDb.SaveChanges();
         }
@@ -621,7 +680,607 @@ namespace CoreVisionDAL.Context
             apiDb.SaveChanges();
         }
 
+        private async void SeedTestUserLicenseDetails(ApiDbContext apiDb, string defaultCreatedBy)
+        {
+            #region Client Admins Licenses
+
+
+            var trialUserLicenseDetails1 = new UserTestLicenseDetailsDM()
+            {
+                SubscriptionPlanName = "Trial",
+                TestLicenseTypeId = 1,
+                ClientUserId = 1,
+                DiscountInPercentage = 0,
+                ActualPaidPrice = 0,
+                TestCountValidity = 2,
+                StartDateUTC = DateTime.UtcNow,
+                CreatedBy = defaultCreatedBy,
+                CreatedOnUTC = DateTime.UtcNow,
+                PaymentMethod = PaymentMethodDM.Other,
+                LicenseStatus = LicenseStatusDM.Active,
+
+            };
+
+            #endregion Client Admins Licenses         
+
+
+            apiDb.UserTestLicenseDetails.Add(trialUserLicenseDetails1);
+            apiDb.SaveChanges();
+        }
+
         #endregion UserLicenseDetail
+
+        #region Exams, Subjects, Topics
+
+        #region Seed Exams Details
+        private async void SeedExamDetails(ApiDbContext apiDb, string defaultCreatedBy)
+        {
+            var exams = new List<ExamDM>()
+            {
+                new ExamDM() { ExamName = "Naib Tehsildar",ExamDescription = "", ConductedBy = "JKSSB", CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow},
+            };   
+            apiDb.Exams.AddRange(exams);
+            apiDb.SaveChanges();
+        }
+
+        #endregion Seed Exams Details
+
+        #region Subjects
+        private async void SeedSubjectDetails(ApiDbContext apiDb, string defaultCreatedBy)
+        {
+            var subjects = new List<SubjectDM>()
+            {
+                new()
+                {
+                    SubjectName = "General Knowledge & Current Affairs",
+                    SubjectDescription = "Covers national, international and J&K-specific current events, history, polity, and general awareness.",
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    SubjectName = "Indian Polity",
+                    SubjectDescription = "Fundamentals of Indian Constitution, governance, political system, and central/state structure.",
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    SubjectName = "Indian Economy",
+                    SubjectDescription = "Basics of Indian economy, economic planning, budgeting, and economic issues in J&K.",
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    SubjectName = "Geography",
+                    SubjectDescription = "Physical, social and economic geography of India and Jammu & Kashmir.",
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    SubjectName = "History & Culture",
+                    SubjectDescription = "Major historical events of India and J&K, freedom struggle, art and culture.",
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    SubjectName = "Science and Technology",
+                    SubjectDescription = "Everyday science, recent developments, and general scientific awareness.",
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    SubjectName = "Logical Reasoning & Analytical Ability",
+                    SubjectDescription = "Covers puzzles, series, directions, coding-decoding, and logical reasoning skills.",
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    SubjectName = "Quantitative Aptitude",
+                    SubjectDescription = "Basic arithmetic, algebra, geometry, and numerical problem-solving.",
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    SubjectName = "English Language",
+                    SubjectDescription = "Grammar, comprehension, vocabulary, and writing ability.",
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    SubjectName = "Jammu & Kashmir Specific Knowledge",
+                    SubjectDescription = "Culture, history, geography, economy and current affairs specific to J&K.",
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                }
+            };
+
+            apiDb.Subjects.AddRange(subjects);
+            apiDb.SaveChanges();
+        }
+
+        #endregion Subjects
+
+        #region Seed Exam Subject Details
+        private async void SeedExamSubjectDetails(ApiDbContext apiDb, string defaultCreatedBy)
+        {
+            var examSubjects = new List<ExamSubjectsDM>()
+            {
+                new(){ ExamId = 1, SubjectId = 1 },
+                new(){ ExamId = 1, SubjectId = 2 },
+                new(){ ExamId = 1, SubjectId = 3 },
+                new(){ ExamId = 1, SubjectId = 4 },
+                new(){ ExamId = 1, SubjectId = 5 },
+                new(){ ExamId = 1, SubjectId = 6 },
+                new(){ ExamId = 1, SubjectId = 7 },
+                new(){ ExamId = 1, SubjectId = 8 },
+                new(){ ExamId = 1, SubjectId = 9 },
+                new(){ ExamId = 1, SubjectId = 10 }
+            };
+            apiDb.ExamSubjects.AddRange(examSubjects);
+            apiDb.SaveChanges();
+        }
+
+        #endregion Seed Exam Subject Details
+
+        #region Seed Subject Topics
+        private async void SeedSubjectTopics(ApiDbContext apiDb, string defaultCreatedBy)
+        {
+            var subjectTopics = new List<SubjectTopicDM>()
+            {
+                // SubjectId = 1 => General Knowledge & Current Affairs
+                new() { TopicName = "National Current Affairs", TopicDescription = "Major events and developments across India.", SubjectId = 1, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "International Current Affairs", TopicDescription = "Important global news and issues.", SubjectId = 1, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "Jammu & Kashmir Current Affairs", TopicDescription = "Recent developments and events in J&K.", SubjectId = 1, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "General Awareness", TopicDescription = "Static general knowledge and awareness.", SubjectId = 1, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                
+                // SubjectId = 2 => Indian Polity
+                new() { TopicName = "Constitution of India", TopicDescription = "Features, amendments, and structure.", SubjectId = 2, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "Fundamental Rights and Duties", TopicDescription = "Citizen rights and constitutional obligations.", SubjectId = 2, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "Union Government", TopicDescription = "President, Parliament, Prime Minister and Council of Ministers.", SubjectId = 2, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "State Government", TopicDescription = "Governor, State Legislature, Chief Minister.", SubjectId = 2, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                
+                // SubjectId = 3 => Indian Economy
+                new() { TopicName = "Economic Planning in India", TopicDescription = "Five-year plans and NITI Aayog.", SubjectId = 3, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "Budget and Fiscal Policy", TopicDescription = "Union budget, taxation and expenditure policies.", SubjectId = 3, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "Inflation and Monetary Policy", TopicDescription = "RBI, repo rate, inflation control tools.", SubjectId = 3, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "Economy of Jammu & Kashmir", TopicDescription = "Sectors and growth of J&K's economy.", SubjectId = 3, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                
+                // SubjectId = 4 => Geography
+                new() { TopicName = "Physical Geography", TopicDescription = "Landforms, climate, and natural resources.", SubjectId = 4, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "Indian Geography", TopicDescription = "Rivers, mountains, states, and union territories.", SubjectId = 4, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "Jammu & Kashmir Geography", TopicDescription = "Valleys, rivers, and terrain of J&K.", SubjectId = 4, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                
+                // SubjectId = 5 => History & Culture
+                new() { TopicName = "Ancient Indian History", TopicDescription = "Indus Valley, Vedic Age and Mauryan Empire.", SubjectId = 5, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "Modern Indian History", TopicDescription = "British rule, freedom struggle and independence.", SubjectId = 5, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "Art and Culture", TopicDescription = "Indian classical dance, music, and architecture.", SubjectId = 5, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "J&K History and Culture", TopicDescription = "Dogra rule, folk art and religious sites.", SubjectId = 5, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                
+                // SubjectId = 6 => Science and Technology
+                new() { TopicName = "Everyday Science", TopicDescription = "Physics, chemistry and biology in daily life.", SubjectId = 6, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "Space and Defence Technology", TopicDescription = "ISRO, DRDO and space missions.", SubjectId = 6, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "IT and Communication", TopicDescription = "Internet, mobile communication and cyber security.", SubjectId = 6, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                
+                // SubjectId = 7 => Logical Reasoning & Analytical Ability
+                new() { TopicName = "Puzzles and Seating Arrangement", TopicDescription = "Logical puzzles and pattern recognition.", SubjectId = 7, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "Blood Relations and Coding-Decoding", TopicDescription = "Family-based problems and symbolic patterns.", SubjectId = 7, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "Direction Sense and Series", TopicDescription = "Movement-based and number/letter series.", SubjectId = 7, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                
+                // SubjectId = 8 => Quantitative Aptitude
+                new() { TopicName = "Arithmetic", TopicDescription = "Percentage, profit and loss, ratio and proportion.", SubjectId = 8, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "Algebra and Geometry", TopicDescription = "Equations, shapes, angles, and measurements.", SubjectId = 8, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "Data Interpretation", TopicDescription = "Bar graphs, pie charts, and tabular data.", SubjectId = 8, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                
+                // SubjectId = 9 => English Language
+                new() { TopicName = "Grammar and Sentence Correction", TopicDescription = "Tenses, prepositions, and sentence structure.", SubjectId = 9, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "Comprehension", TopicDescription = "Reading passages and answering questions.", SubjectId = 9, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "Vocabulary and Synonyms/Antonyms", TopicDescription = "Word meanings, synonyms and antonyms.", SubjectId = 9, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                
+                // SubjectId = 10 => J&K Specific Knowledge
+                new() { TopicName = "J&K Geography", TopicDescription = "Mountains, rivers, climate and districts.", SubjectId = 10, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "J&K Economy", TopicDescription = "Major industries, handicrafts and tourism.", SubjectId = 10, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow },
+                new() { TopicName = "J&K Culture", TopicDescription = "Languages, festivals, music and traditions.", SubjectId = 10, CreatedBy = defaultCreatedBy, CreatedOnUTC = DateTime.UtcNow }
+            };
+
+            apiDb.SubjectTopics.AddRange(subjectTopics);
+            apiDb.SaveChanges();
+        }
+
+        #endregion Seed Subject Topics
+
+        #region Seed MCQs
+
+        private async void SeedMCQs(ApiDbContext apiDb, string defaultCreatedBy)
+        {
+            var mcqs = new List<MCQDM>
+            {
+                #region Exams Mcq
+                new()
+                {
+                    QuestionText = "Who conducts the Naib Tehsildar exam in Jammu and Kashmir?",
+                    OptionA = "JKPSC", OptionB = "UPSC", OptionC = "JKSSB", OptionD = "SSC",
+                    CorrectOption = "C",
+                    Explanation = "JKSSB is responsible for conducting the Naib Tehsildar exam.",
+                    ExamId = 1,
+                    SubjectId = null,
+                    SubjectTopicId = null,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    QuestionText = "Which article of the Indian Constitution deals with the Right to Equality?",
+                    OptionA = "Article 14", OptionB = "Article 19", OptionC = "Article 21", OptionD = "Article 32",
+                    CorrectOption = "A",
+                    Explanation = "Article 14 provides for equality before law and equal protection of laws.",
+                    SubjectId = null,
+                    SubjectTopicId = null,
+                    ExamId = 1,
+                    CreatedOnUTC = DateTime.UtcNow,
+                    CreatedBy = defaultCreatedBy,
+                },
+                new()
+                {
+                    QuestionText = "What is the capital of Jammu and Kashmir during summer?",
+                    OptionA = "Jammu", OptionB = "Srinagar", OptionC = "Leh", OptionD = "Anantnag",
+                    CorrectOption = "B",
+                    Explanation = "Srinagar serves as the summer capital while Jammu is the winter capital.",
+                    ExamId = 1,
+                    SubjectId = null,
+                    SubjectTopicId = null,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    QuestionText = "Which river is known as the lifeline of Jammu and Kashmir?",
+                    OptionA = "Jhelum", OptionB = "Tawi", OptionC = "Chenab", OptionD = "Ravi",
+                    CorrectOption = "A",
+                    Explanation = "The Jhelum River plays a vital role in the economy and agriculture of the Kashmir Valley.",
+                    ExamId = 1,
+                    SubjectId = null,
+                    SubjectTopicId = null,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    QuestionText = "Which Mughal emperor built the Shalimar Bagh in Srinagar?",
+                    OptionA = "Akbar", OptionB = "Jahangir", OptionC = "Shah Jahan", OptionD = "Aurangzeb",
+                    CorrectOption = "B",
+                    Explanation = "Emperor Jahangir built the Shalimar Bagh for his wife Nur Jahan.",
+                    ExamId = 1,
+                    SubjectId = null,
+                    SubjectTopicId = null,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    QuestionText = "Which of the following is NOT a Union Territory of India?",
+                    OptionA = "Ladakh", OptionB = "Chandigarh", OptionC = "Sikkim", OptionD = "Puducherry",
+                    CorrectOption = "C",
+                    Explanation = "Sikkim is a full-fledged state, not a Union Territory.",
+                    ExamId = 1,
+                    SubjectId = null,
+                    SubjectTopicId = null,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    QuestionText = "Who is the current Chief Election Commissioner of India? (as of 2025)",
+                    OptionA = "Rajiv Kumar", OptionB = "Sushil Chandra", OptionC = "Sunil Arora", OptionD = "Ashok Lavasa",
+                    CorrectOption = "A",
+                    Explanation = "Rajiv Kumar is the current Chief Election Commissioner of India.",
+                    ExamId = 1,
+                    SubjectId = null,
+                    SubjectTopicId = null,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    QuestionText = "Which gas is most abundant in the Earth’s atmosphere?",
+                    OptionA = "Oxygen", OptionB = "Nitrogen", OptionC = "Carbon Dioxide", OptionD = "Hydrogen",
+                    CorrectOption = "B",
+                    Explanation = "Nitrogen constitutes about 78% of the Earth's atmosphere.",
+                    ExamId = 1,
+                    SubjectId = null,
+                    SubjectTopicId = null,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    QuestionText = "Find the next number in the series: 2, 4, 8, 16, ?",
+                    OptionA = "24", OptionB = "30", OptionC = "32", OptionD = "36",
+                    CorrectOption = "C",
+                    Explanation = "Each number is multiplied by 2 to get the next one: 2×2=4, 4×2=8, etc.",
+                    ExamId = 1,
+                    SubjectId = null,
+                    SubjectTopicId = null,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    QuestionText = "Choose the correctly spelled word.",
+                    OptionA = "Enviroment", OptionB = "Environment", OptionC = "Envirnment", OptionD = "Enviornment",
+                    CorrectOption = "B",
+                    Explanation = "The correct spelling is 'Environment'.",
+                    ExamId = 1,
+                    SubjectId = null,
+                    SubjectTopicId = null,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                #endregion Exams Mcq
+
+                #region Subject MCQs
+
+                new()
+                {
+                    QuestionText = "Which Indian city was ranked highest in the Swachh Survekshan 2024?",
+                    OptionA = "Indore", OptionB = "Surat", OptionC = "Bhopal", OptionD = "Ahmedabad",
+                    CorrectOption = "A",
+                    Explanation = "Indore secured the top rank in Swachh Survekshan 2024 for cleanliness.",
+                    ExamId = null,
+                    SubjectId = 1,
+                    SubjectTopicId = null,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                 new()
+                 {
+                     QuestionText = "Who is the current President of India (as of 2025)?",
+                     OptionA = "Ram Nath Kovind", OptionB = "Droupadi Murmu", OptionC = "Pranab Mukherjee", OptionD = "Narendra Modi",
+                     CorrectOption = "B",
+                     Explanation = "Droupadi Murmu became the 15th President of India in July 2022.",
+                     ExamId = null,
+                     SubjectId = 1,
+                     SubjectTopicId = null,
+                     CreatedBy = defaultCreatedBy,
+                     CreatedOnUTC = DateTime.UtcNow
+                 },
+                 new()
+                 {
+                     QuestionText = "Which country recently became the 195th member of the United Nations?",
+                     OptionA = "Kosovo", OptionB = "South Sudan", OptionC = "Palestine", OptionD = "None of the above",
+                     CorrectOption = "D",
+                     Explanation = "As of now, there are 193 member states in the UN; no new member was added recently.",
+                     ExamId = null,
+                     SubjectId = 1,
+                     SubjectTopicId = null,
+                     CreatedBy = defaultCreatedBy,
+                     CreatedOnUTC = DateTime.UtcNow
+                 },
+                 new()
+                 {
+                     QuestionText = "Which state won the Best Performer award in Start-up India Ranking 2023?",
+                     OptionA = "Gujarat", OptionB = "Karnataka", OptionC = "Maharashtra", OptionD = "Tamil Nadu",
+                     CorrectOption = "A",
+                     Explanation = "Gujarat was recognized as the best performer in Start-up India Ranking 2023.",
+                     ExamId = null,
+                     SubjectId = 1,
+                     SubjectTopicId = null,
+                     CreatedBy = defaultCreatedBy,
+                     CreatedOnUTC = DateTime.UtcNow
+                 },
+                 new()
+                 {
+                     QuestionText = "What is the full form of G20?",
+                     OptionA = "Group of Twenty", OptionB = "Global 20 Nations", OptionC = "Group of Top 20", OptionD = "None of these",
+                     CorrectOption = "A",
+                     Explanation = "G20 stands for Group of Twenty major economies.",
+                     ExamId = null,
+                     SubjectId = 1,
+                     SubjectTopicId = null,
+                     CreatedBy = defaultCreatedBy,
+                     CreatedOnUTC = DateTime.UtcNow
+                 },
+                 new()
+                 {
+                     QuestionText = "Who is the current Chief Justice of India (as of July 2025)?",
+                     OptionA = "Justice D. Y. Chandrachud", OptionB = "Justice N. V. Ramana", OptionC = "Justice U. U. Lalit", OptionD = "Justice Ranjan Gogoi",
+                     CorrectOption = "A",
+                     Explanation = "Justice D. Y. Chandrachud has been serving as the Chief Justice of India since November 2022.",
+                     ExamId = null,
+                     SubjectId = 1,
+                     SubjectTopicId = null,
+                     CreatedBy = defaultCreatedBy,
+                     CreatedOnUTC = DateTime.UtcNow
+                 },
+                 new()
+                 {
+                     QuestionText = "Which country hosted the G20 Summit 2023?",
+                     OptionA = "India", OptionB = "Indonesia", OptionC = "Brazil", OptionD = "Italy",
+                     CorrectOption = "A",
+                     Explanation = "India hosted the G20 Summit in 2023 under the theme 'One Earth, One Family, One Future'.",
+                     ExamId = null,
+                     SubjectId = 1,
+                     SubjectTopicId = null,
+                     CreatedBy = defaultCreatedBy,
+                     CreatedOnUTC = DateTime.UtcNow
+                 },
+                 new()
+                 {
+                     QuestionText = "Which Indian state recently launched the 'Mukhyamantri Seekho-Kamao Yojana'?",
+                     OptionA = "Uttar Pradesh", OptionB = "Madhya Pradesh", OptionC = "Bihar", OptionD = "Rajasthan",
+                     CorrectOption = "B",
+                     Explanation = "The scheme was launched by Madhya Pradesh to provide skill training and stipends.",
+                     ExamId = null,
+                     SubjectId = 1,
+                     SubjectTopicId = null,
+                     CreatedBy = defaultCreatedBy,
+                     CreatedOnUTC = DateTime.UtcNow
+                 },
+                 new()
+                 {
+                     QuestionText = "What is the name of India’s lunar mission that successfully landed on the Moon in 2023?",
+                     OptionA = "Chandrayaan-1", OptionB = "Chandrayaan-2", OptionC = "Chandrayaan-3", OptionD = "Vikram Lander",
+                     CorrectOption = "C",
+                     Explanation = "Chandrayaan-3 successfully landed on the Moon’s south pole in August 2023.",
+                     ExamId = null,
+                     SubjectId = 1,
+                     SubjectTopicId = null,
+                     CreatedBy = defaultCreatedBy,
+                     CreatedOnUTC = DateTime.UtcNow
+                 },
+                 new()
+                 {
+                     QuestionText = "Which Indian airport was awarded the Best Airport in Asia-Pacific in 2023?",
+                     OptionA = "Delhi Airport", OptionB = "Mumbai Airport", OptionC = "Bangalore Airport", OptionD = "Hyderabad Airport",
+                     CorrectOption = "A",
+                     Explanation = "Indira Gandhi International Airport, Delhi won the Best Airport in Asia-Pacific (40+ million passengers) award in 2023.",
+                     ExamId = null,
+                     SubjectId = 1,
+                     SubjectTopicId = null,
+                     CreatedBy = defaultCreatedBy,
+                     CreatedOnUTC = DateTime.UtcNow
+                 }, 
+                 #endregion Subject MCQs
+
+                #region Topic MCQs
+
+                new()
+                {
+                    QuestionText = "Who is the current President of India as of 2025?",
+                    OptionA = "Ram Nath Kovind", OptionB = "Pranab Mukherjee", OptionC = "Droupadi Murmu", OptionD = "Narendra Modi",
+                    CorrectOption = "C",
+                    Explanation = "Droupadi Murmu is the current President of India, having assumed office in July 2022.",
+                    ExamId = null,
+                    SubjectId = null,
+                    SubjectTopicId = 1,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    QuestionText = "Which state recently launched the 'Mukhyamantri Seekho-Kamao Yojana' to promote youth employment?",
+                    OptionA = "Rajasthan", OptionB = "Madhya Pradesh", OptionC = "Odisha", OptionD = "Bihar",
+                    CorrectOption = "B",
+                    Explanation = "Madhya Pradesh launched the 'Mukhyamantri Seekho-Kamao Yojana' in 2023 to enhance skill development.",
+                    ExamId = null,
+                    SubjectId = null,
+                    SubjectTopicId = 1,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    QuestionText = "Which Indian city hosted the G20 Summit in 2023?",
+                    OptionA = "New Delhi", OptionB = "Mumbai", OptionC = "Hyderabad", OptionD = "Kolkata",
+                    CorrectOption = "A",
+                    Explanation = "The G20 Summit 2023 was held in New Delhi, India.",
+                    ExamId = null,
+                    SubjectId = null,
+                    SubjectTopicId = 1,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    QuestionText = "Who is the current Chief Justice of India as of 2025?",
+                    OptionA = "N. V. Ramana", OptionB = "D. Y. Chandrachud", OptionC = "Ranjan Gogoi", OptionD = "U. U. Lalit",
+                    CorrectOption = "B",
+                    Explanation = "Justice D. Y. Chandrachud is the Chief Justice of India since 2022.",
+                    ExamId = null,
+                    SubjectId = null,
+                    SubjectTopicId = 1,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    QuestionText = "Which Indian state became the first to implement a 'Green Hydrogen Policy'?",
+                    OptionA = "Tamil Nadu", OptionB = "Kerala", OptionC = "Gujarat", OptionD = "Rajasthan",
+                    CorrectOption = "D",
+                    Explanation = "Rajasthan was the first Indian state to implement a Green Hydrogen Policy in 2023.",
+                    ExamId = null,
+                    SubjectId = null,
+                    SubjectTopicId = 1,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    QuestionText = "Which Indian company launched the AI chatbot 'Jio GPT' in 2024?",
+                    OptionA = "Tata", OptionB = "Infosys", OptionC = "Reliance Jio", OptionD = "HCL",
+                    CorrectOption = "C",
+                    Explanation = "Reliance Jio launched its AI chatbot 'Jio GPT' in early 2024.",
+                    ExamId = null,
+                    SubjectId = null,
+                    SubjectTopicId = 1,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    QuestionText = "Which Indian has recently become the Chairperson of World Trade Organization (WTO) General Council?",
+                    OptionA = "Anjali Sharma", OptionB = "Anwar Hussain Shaik", OptionC = "Rajeev Chandrasekhar", OptionD = "S. Jaishankar",
+                    CorrectOption = "B",
+                    Explanation = "Anwar Hussain Shaik was appointed as the Chairperson of the WTO General Council.",
+                    ExamId = null,
+                    SubjectId = null,
+                    SubjectTopicId = 1,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    QuestionText = "Which Indian state launched 'Mission Shakti' for women's empowerment?",
+                    OptionA = "Maharashtra", OptionB = "Uttar Pradesh", OptionC = "Odisha", OptionD = "Punjab",
+                    CorrectOption = "C",
+                    Explanation = "Odisha launched 'Mission Shakti' to empower women through SHGs and financial support.",
+                    ExamId = null,
+                    SubjectId = null,
+                    SubjectTopicId = 1,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    QuestionText = "Who won the Padma Vibhushan in 2024 for public affairs?",
+                    OptionA = "M. Venkaiah Naidu", OptionB = "Amitabh Bachchan", OptionC = "Narendra Modi", OptionD = "Ratan Tata",
+                    CorrectOption = "A",
+                    Explanation = "M. Venkaiah Naidu was awarded the Padma Vibhushan in 2024 for public affairs.",
+                    ExamId = null,
+                    SubjectId = null,
+                    SubjectTopicId = 1,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                new()
+                {
+                    QuestionText = "Which Indian city was ranked highest in the Swachh Survekshan 2024?",
+                    OptionA = "Indore", OptionB = "Surat", OptionC = "Bhopal", OptionD = "Ahmedabad",
+                    CorrectOption = "A",
+                    Explanation = "Indore secured the top rank in Swachh Survekshan 2024 for cleanliness.",
+                    ExamId = null,
+                    SubjectId = null,
+                    SubjectTopicId = 1,
+                    CreatedBy = defaultCreatedBy,
+                    CreatedOnUTC = DateTime.UtcNow
+                },
+                #endregion Topic MCQs
+            };
+
+            apiDb.MCQs.AddRange(mcqs);
+            apiDb.SaveChanges();
+        }
+
+        #endregion Seed MCQs
+
+        #endregion Exams
 
         #endregion Seed License Related Data
 

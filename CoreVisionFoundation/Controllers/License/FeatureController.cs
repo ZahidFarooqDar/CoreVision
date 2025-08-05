@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.OData.Query;
 
 namespace CoreVisionFoundation.Controllers.License
 {
-    [Route("api/v1/[controller]")]
+    /*[Route("api/v1/[controller]")]
     public class FeatureController : ApiControllerWithOdataRoot<FeatureSM>
     {
         #region Properties
@@ -182,5 +182,5 @@ namespace CoreVisionFoundation.Controllers.License
         }
 
         #endregion Delete Endpoint
-    }
+    }*/
 }

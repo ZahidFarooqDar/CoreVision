@@ -20,14 +20,10 @@ namespace CoreVisionDomainModels.AppUser.Login
         [Required]
         [StringLength(50, MinimumLength = 3)]
         public string LoginId { get; set; }
-
-        [Required]
+        
         [StringLength(50, MinimumLength = 3)]
         [DefaultValue("")]
         public string FirstName { get; set; }
-
-        [StringLength(50, MinimumLength = 0)]
-        public string? MiddleName { get; set; }
         [StringLength(50)]
         public string? LastName { get; set; }
         [MaxLength(50)]
@@ -46,8 +42,5 @@ namespace CoreVisionDomainModels.AppUser.Login
         [DefaultValue(false)]
         public bool IsPhoneNumberConfirmed { get; set; }
         public LoginStatusDM LoginStatus { get; set; }
-
-        [DataType(DataType.DateTime)]
-        public DateTime? DateOfBirth { get; set; }
     }
 }

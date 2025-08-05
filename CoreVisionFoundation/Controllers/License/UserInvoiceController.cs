@@ -12,7 +12,7 @@ using Stripe;
 
 namespace CoreVisionFoundation.Controllers.License
 {
-    [Route("api/v1/[controller]")]
+    /*[Route("api/v1/[controller]")]
     [ApiController]
     public class UserInvoiceController : ApiControllerWithOdataRoot<UserInvoiceSM>
     {
@@ -178,5 +178,5 @@ namespace CoreVisionFoundation.Controllers.License
 
         }
         #endregion Download Invoice
-    }
+    }*/
 }

@@ -9,7 +9,6 @@ using CoreVisionServiceModels.Foundation.Base.CommonResponseRoot;
 using CoreVisionServiceModels.Foundation.Base.Enums;
 using CoreVisionServiceModels.Foundation.Token;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -47,6 +46,7 @@ namespace CoreVisionFoundation.Controllers.Token
             #region Check Request
 
             var innerReq = apiRequest?.ReqData;
+            innerReq.CompanyCode = "123";
             if (innerReq == null)
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_Log));
@@ -83,7 +83,7 @@ namespace CoreVisionFoundation.Controllers.Token
                 {
                     new Claim(ClaimTypes.Name,innerReq.LoginId),
                     new Claim(ClaimTypes.Role,userSM.RoleType.ToString()),
-                    new Claim(ClaimTypes.GivenName,userSM.FirstName + " " + userSM.MiddleName + " " +userSM.LastName ),
+                    new Claim(ClaimTypes.GivenName,userSM.FirstName+ " " +userSM.LastName ),
                     new Claim(ClaimTypes.Email,userSM.EmailId),
                     new Claim(DomainConstants.ClaimsRoot.Claim_DbRecordId,userSM.Id.ToString())
                 };
@@ -140,7 +140,7 @@ namespace CoreVisionFoundation.Controllers.Token
                 {
                     new Claim(ClaimTypes.Name,userSM.LoginId),
                     new Claim(ClaimTypes.Role,userSM.RoleType.ToString()),
-                    new Claim(ClaimTypes.GivenName,userSM.FirstName + " " + userSM.MiddleName + " " +userSM.LastName ),
+                    new Claim(ClaimTypes.GivenName,userSM.FirstName+ " " +userSM.LastName ),
                     new Claim(ClaimTypes.Email,userSM.EmailId),
                     new Claim(DomainConstants.ClaimsRoot.Claim_DbRecordId,userSM.Id.ToString())
                 };

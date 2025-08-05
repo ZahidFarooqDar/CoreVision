@@ -19,7 +19,7 @@ namespace CoreVisionDomainModels.AppUser
         public virtual ClientCompanyDetailDM? ClientCompanyDetail { get; set; }
         public ICollection<ClientUserExamTestDM> ExamTestDeatils { get; set; }
         public ICollection<ClientUserSubjectTestDM> SubjectTestDeatils { get; set; }
-        public ICollection<ClientUserTopicTestDM> TopicTestDeatils { get; set; }
+        public ICollection<ClientUserTopicTestDM> TopicTestDeatils { get; set; }       
 
     }
 }

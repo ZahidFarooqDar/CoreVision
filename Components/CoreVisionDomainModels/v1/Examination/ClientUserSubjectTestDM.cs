@@ -13,8 +13,11 @@ namespace CoreVisionDomainModels.v1.Examination
         [ForeignKey(nameof(Subject))]
         public int SubjectId { get; set; }
         public virtual SubjectDM Subject { get; set; }
-        public double MarksObtained { get; set; }
+        public double? MarksObtained { get; set; }
 
-        public double TotalMarks { get; set; }
+        public int WrongAnswers { get; set; }
+        public double? TotalMarks { get; set; }
+        public bool? IsDataGet { get; set; }
+        public bool? IsDataSubmitted { get; set; }
     }
 }

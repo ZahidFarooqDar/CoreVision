@@ -11,7 +11,7 @@ using CoreVisionServiceModels.Foundation.Base.Enums;
 
 namespace CoreVisionFoundation.Controllers.License
 {
-    [Route("api/v1/[controller]")]
+    /*[Route("api/v1/[controller]")]
     [ApiController]
     public class LicenseTypeController : ApiControllerWithOdataRoot<LicenseTypeSM>
     {
@@ -97,5 +97,5 @@ namespace CoreVisionFoundation.Controllers.License
         }
 
         #endregion --COUNT--
-    }
+    }*/
 }

@@ -12,7 +12,7 @@ using Stripe;
 
 namespace CoreVisionFoundation.Controllers.License
 {
-    [Route("api/[controller]")]
+    /*[Route("api/[controller]")]
     [ApiController]
     public class PaymentController : ApiControllerRoot
     {
@@ -170,5 +170,5 @@ namespace CoreVisionFoundation.Controllers.License
         }
 
         #endregion Stripe Methods
-    }
+    }*/
 }

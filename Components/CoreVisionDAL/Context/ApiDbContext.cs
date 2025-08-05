@@ -2,6 +2,7 @@
 using CoreVisionDomainModels.AppUser;
 using CoreVisionDomainModels.Client;
 using CoreVisionDomainModels.Foundation;
+using CoreVisionDomainModels.v1.Examination;
 using CoreVisionDomainModels.v1.General.License;
 using CoreVisionDomainModels.v1.General.ScanCodes;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +29,7 @@ namespace CoreVisionDAL.Context
         public DbSet<ClientUserDM> ClientUsers { get; set; }
         public DbSet<ClientCompanyDetailDM> ClientCompanyDetails { get; set; }
         public DbSet<ExternalUserDM> ExternalUsers { get; set; }
+        public DbSet<EmailOtpDM> EmailOtps { get; set; }
 
         #endregion App Users
 
@@ -39,12 +41,28 @@ namespace CoreVisionDAL.Context
         #region License
 
         public DbSet<LicenseTypeDM> LicenseTypes { get; set; }
+        public DbSet<TestLicenseTypeDM> TestLicenseTypes { get; set; }
         public DbSet<UserInvoiceDM> UserInvoices { get; set; }
+        public DbSet<UserTestInvoiceDM> UserTestInvoices { get; set; }
         public DbSet<UserLicenseDetailsDM> UserLicenseDetails { get; set; }
+        public DbSet<UserTestLicenseDetailsDM> UserTestLicenseDetails { get; set; }
         public DbSet<FeatureDM> Features { get; set; }
         public DbSet<FeatureDM_LicenseTypeDM> LicenseFeatures { get; set; }
 
         #endregion License
+
+        #region Examination
+
+        public DbSet<ExamDM> Exams { get; set; }
+        public DbSet<ClientUserExamTestDM> ClientExamTests { get; set; }
+        public DbSet<ClientUserSubjectTestDM> ClientSubjectTests { get; set; }
+        public DbSet<ClientUserTopicTestDM> ClientTopicTests { get; set; }
+        public DbSet<ExamSubjectsDM> ExamSubjects { get; set; }
+        public DbSet<MCQDM> MCQs { get; set; }
+        public DbSet<SubjectDM> Subjects { get; set; }
+        public DbSet<SubjectTopicDM> SubjectTopics { get; set; }
+
+        #endregion Examination
 
         #region On Model Creating
         protected override void OnModelCreating(ModelBuilder modelBuilder)

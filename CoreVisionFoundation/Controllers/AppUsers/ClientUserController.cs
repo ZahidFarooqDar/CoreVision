@@ -117,7 +117,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
 
         [HttpPost()]
         [AllowAnonymous]
-        public async Task<ActionResult<ApiResponse<BoolResponseRoot>>> PostNewAppUser(string companyCode, [FromBody] ApiRequest<ClientUserSM> apiRequest)
+        public async Task<ActionResult<ApiResponse<BoolResponseRoot>>> PostNewAppUser([FromBody] ApiRequest<ClientUserSM> apiRequest)
         {
             #region Check Request
 
@@ -126,13 +126,10 @@ namespace CoreVisionFoundation.Controllers.AppUsers
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
             }
-            var httpContext = _httpContextAccessor.HttpContext;
-            var baseUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host.ToUriComponent()}";
-            //var baseUrl = $"{httpContext.Request.Scheme}://localhost:4200";
-            var link = $"{baseUrl}/VerifyEmail";
+            var companyCode = "123";
             #endregion Check Request
 
-            var addedSM = await _clientUserProcess.AddNewUser(innerReq, companyCode, link);
+            var addedSM = await _clientUserProcess.AddNewUser(innerReq, companyCode);
             if (addedSM != null)
             {
                 return ModelConverter.FormNewSuccessResponse(addedSM);
@@ -184,16 +181,18 @@ namespace CoreVisionFoundation.Controllers.AppUsers
 
         [HttpGet("check/email")]
         [AllowAnonymous]
-        public async Task<ActionResult<ApiResponse<BoolResponseRoot>>> CheckEmail(string email, string companyCode)
+        public async Task<ActionResult<ApiResponse<BoolResponseRoot>>> CheckEmail(string email)
         {
+            var companyCode = "123";
             var resp = await _clientUserProcess.CheckExistingEmail(email, companyCode);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
         }
 
         [HttpGet("check/loginId")]
         [AllowAnonymous]
-        public async Task<ActionResult<ApiResponse<BoolResponseRoot>>> CheckLoginId(string loginId, string companyCode)
+        public async Task<ActionResult<ApiResponse<BoolResponseRoot>>> CheckLoginId(string loginId)
         {
+            var companyCode = "123";
             var resp = await _clientUserProcess.CheckExistingLoginId(loginId, companyCode);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
         }
@@ -204,7 +203,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
 
         [HttpPost("VerifyEmail")]
         [AllowAnonymous]
-        public async Task<ActionResult<ApiResponse<BoolResponseRoot>>> VerfiyEmail([FromBody] ApiRequest<VerifyEmailRequestSM> apiRequest)
+        public async Task<ActionResult<ApiResponse<BoolResponseRoot>>> VerfiyEmail([FromBody] ApiRequest<VerifyEmailOTPRequestSM> apiRequest)
         {
             #region Check Request
 
@@ -216,11 +215,29 @@ namespace CoreVisionFoundation.Controllers.AppUsers
 
 
             #endregion Check Request
-            var resp = await _clientUserProcess.VerifyEmailRequest(innerReq);
+            var resp = await _clientUserProcess.ConfirmEmailOtpAsync(innerReq);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
         }
 
-        [HttpPost("ForgotLoginId")]
+        [HttpPost("resend-email-otp")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponse<BoolResponseRoot>>> ResendEmailVerification([FromBody] ApiRequest<EmailConfirmationSM> apiRequest)
+        {
+            #region Check Request
+
+            var innerReq = apiRequest?.ReqData;
+            if (innerReq == null)
+            {
+                return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
+            }
+
+
+            #endregion Check Request
+            var resp = await _clientUserProcess.ResendEmailOTPVerification(innerReq);
+            return Ok(ModelConverter.FormNewSuccessResponse(resp));
+        }
+
+        [HttpPost("forgotloginid")]
         [AllowAnonymous]
         public async Task<ActionResult<ApiResponse<BoolResponseRoot>>> ForgotLoginId([FromBody] ApiRequest<EmailConfirmationSM> apiRequest)
         {
@@ -280,7 +297,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
 
         #region ForgotPassword & ResetPassword EndPoints
 
-        [HttpPost("ForgotPassword")]
+        [HttpPost("forgotpassword")]
         [AllowAnonymous]
         //[Authorize(AuthenticationSchemes = APIBearerTokenAuthHandler.DefaultSchema, Roles = "ClientAdmin,ClientEmployee")]
         public async Task<ActionResult<ApiResponse<ClientUserSM>>> ForgotPassword([FromBody] ApiRequest<ForgotPasswordSM> apiRequest)
@@ -289,7 +306,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
             var innerReq = apiRequest?.ReqData;
             var httpContext = _httpContextAccessor.HttpContext;
             var baseUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host.ToUriComponent()}";
-            var link = $"{baseUrl}/ResetPassword";
+            var link = $"{baseUrl}/resetpassword";
             if (innerReq == null)
             {
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
@@ -308,7 +325,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
             }
         }
 
-        [HttpPost("ResetPassword")]
+        [HttpPost("resetpassword")]
         [AllowAnonymous]
         //[Authorize(AuthenticationSchemes = APIBearerTokenAuthHandler.DefaultSchema, Roles = "ClientAdmin,ClientEmployee")]
         public async Task<ActionResult<ApiResponse<ClientUserSM>>> ResetPassword([FromBody] ApiRequest<ResetPasswordRequestSM> apiRequest)
@@ -329,7 +346,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
             }
         }
 
-        [HttpGet("ValidatePassword")]
+        [HttpGet("validatepassword")]
         [AllowAnonymous]
         //[Authorize(AuthenticationSchemes = APIBearerTokenAuthHandler.DefaultSchema, Roles = "ClientAdmin,ClientEmployee")]
         public async Task<ActionResult<ApiResponse<IntResponseRoot>>> ValidatePassword(string authCode)
