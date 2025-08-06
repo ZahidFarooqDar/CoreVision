@@ -1,4 +1,4 @@
-﻿using CoreVisionBAL.Foundation.Web;
+﻿using CoreVisionBAL.General.AI;
 using CoreVisionBAL.License;
 using CoreVisionBAL.Projects.AzureAI;
 using CoreVisionBAL.Projects.BaseAIProcess;
@@ -7,9 +7,8 @@ using CoreVisionBAL.Projects.StoryAI;
 using CoreVisionFoundation.Security;
 using CoreVisionServiceModels.Foundation.Base.CommonResponseRoot;
 using CoreVisionServiceModels.Foundation.Base.Enums;
-using CoreVisionServiceModels.v1.General.AzureAI;
+using CoreVisionServiceModels.v1.General.AI;
 using CoreVisionServiceModels.v1.General.HuggingFace;
-using CoreVisionServiceModels.v1.General.StoryAI;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,14 +21,16 @@ namespace CoreVisionFoundation.Controllers.AI
     {
         public readonly HuggingfaceProcess _huggingfaceProcess;
         public readonly BaseAIProcess _baseAIProcess;
+        public readonly ExamAIProcess _examAIProcess;
         private readonly AzureAIProcess _azureAIProcess;
         private readonly StoryProcess _storyProcess;
         private readonly PermissionProcess _permissionProcess;
-        public CoreVisionController(HuggingfaceProcess huggingfaceProcess, BaseAIProcess baseAIProcess,
+        public CoreVisionController(HuggingfaceProcess huggingfaceProcess, BaseAIProcess baseAIProcess,ExamAIProcess examAIProcess,
             StoryProcess storyProcess, AzureAIProcess azureAIProcess, PermissionProcess permissionProcess) 
         {
             _huggingfaceProcess = huggingfaceProcess;
             _baseAIProcess = baseAIProcess;
+            _examAIProcess = examAIProcess;
             _storyProcess = storyProcess;
             _azureAIProcess = azureAIProcess;
             _permissionProcess = permissionProcess;
@@ -87,8 +88,8 @@ namespace CoreVisionFoundation.Controllers.AI
         }*/
 
         [HttpPost("qna")]
-        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "ClientEmployee, CompanyAutomation")]
-        public async Task<ActionResult<ApiResponse<HuggingFaceResponseSM>>> ExtractResponseUsingDeepSeekAsync([FromBody] ApiRequest<TextRequestSM> apiRequest)
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "ClientEmployee, CompanyAutomation")]        
+        public async Task<ActionResult<ApiResponse<AITextResponse>>> ExtractResponseUsingDeepSeekAsync([FromBody] ApiRequest<TextRequestSM> apiRequest)
         {
             var innerReq = apiRequest?.ReqData;
             if (innerReq == null)
@@ -98,7 +99,7 @@ namespace CoreVisionFoundation.Controllers.AI
             /*var featureCode = "CVCHAT-2025";
             int userId = User.GetUserRecordIdFromCurrentUserClaims();
             await _permissionProcess.DoesUserHasPermission(userId, featureCode);*/
-            var resp = await _huggingfaceProcess.ExtractResponseUsingDeepSeekAsync(innerReq);
+            var resp = await _examAIProcess.GenerateQNA(innerReq);
             return Ok(ModelConverter.FormNewSuccessResponse(resp));
 
         }

@@ -5,6 +5,7 @@ using CoreVisionFoundation.Security;
 using CoreVisionServiceModels.Foundation.Base.CommonResponseRoot;
 using CoreVisionServiceModels.Foundation.Base.Enums;
 using CoreVisionServiceModels.v1.Examination;
+using CoreVisionServiceModels.v1.General.AI;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
@@ -221,6 +222,14 @@ namespace CoreVisionFoundation.Controllers.Examination
                 return BadRequest(ModelConverter.FormNewErrorResponse("Answer is required", ApiErrorTypeSM.InvalidInputData_NoLog));
             }
             var ret = await _mcqProcess.ValidateAnswer(id, answer);
+            return Ok(ModelConverter.FormNewSuccessResponse(ret));
+        }
+        
+        [HttpPost("{id}/explination")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin,ClientEmployee")]        
+        public async Task<ActionResult<ApiResponse<AITextResponse>>> Explain(int id)
+        {            
+            var ret = await _mcqProcess.QuestionAnswerExplinationByAI(id);
             return Ok(ModelConverter.FormNewSuccessResponse(ret));
         }
 

@@ -1,12 +1,14 @@
 ﻿using AutoMapper;
 using CoreVisionBAL.ExceptionHandler;
 using CoreVisionBAL.Foundation.Base;
+using CoreVisionBAL.General.AI;
 using CoreVisionDAL.Context;
 using CoreVisionDomainModels.v1.Examination;
 using CoreVisionServiceModels.Foundation.Base.CommonResponseRoot;
 using CoreVisionServiceModels.Foundation.Base.Enums;
 using CoreVisionServiceModels.Foundation.Base.Interfaces;
 using CoreVisionServiceModels.v1.Examination;
+using CoreVisionServiceModels.v1.General.AI;
 using Microsoft.EntityFrameworkCore;
 
 namespace CoreVisionBAL.General.Examination
@@ -16,15 +18,17 @@ namespace CoreVisionBAL.General.Examination
         #region Properties
 
         private readonly ILoginUserDetail _loginUserDetail;
+        private readonly ExamAIProcess _aiProcess;
 
         #endregion Properties
 
         #region Constructor
 
-        public MCQProcess(IMapper mapper, ILoginUserDetail loginUserDetail, ApiDbContext apiDbContext)
+        public MCQProcess(IMapper mapper, ILoginUserDetail loginUserDetail, ApiDbContext apiDbContext, ExamAIProcess aiProcess)
             : base(mapper, apiDbContext)
         {
             _loginUserDetail = loginUserDetail;
+            _aiProcess = aiProcess;
         }
 
         #endregion Constructor
@@ -397,6 +401,18 @@ namespace CoreVisionBAL.General.Examination
                 CorrectOption = dm.CorrectOption,
                 Explanation = dm.Explanation
             };
+        }
+
+        public async Task<AITextResponse?> QuestionAnswerExplinationByAI(int id)
+        {
+            var dm = await _apiDbContext.MCQs.FindAsync(id);
+            if (dm == null)
+            {
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "MCQ not found", "MCQ not found");
+            }
+            var sm = _mapper.Map<MCQSM>(dm);
+            var response = await _aiProcess.GenerateMCQExplination(sm);
+            return response;
         }
 
         #endregion Answer For MCQ
