@@ -9,6 +9,7 @@
             this.HomeChefConfiguration = new HomeChefConfiguration();
             this.HuggingFaceConfiguration = new HuggingFaceConfiguration();
             this.CohereConfiguration = new CohereConfiguration();
+            this.CohereExamAPIKeys = new CohereExamAPIKeys();
 
         }
         public DataRaptorConfiguration DataRaptorConfiguration { get; set; }
@@ -17,6 +18,7 @@
         public AzureConfiguration AzureConfiguration { get; set; }
         public HuggingFaceConfiguration HuggingFaceConfiguration { get; set; }
         public CohereConfiguration CohereConfiguration { get; set; }
+        public CohereExamAPIKeys CohereExamAPIKeys { get; set; }
 
     }
     public class DataRaptorConfiguration
@@ -107,5 +109,10 @@
         public string SummarizeModel { get; set; }
         public string TranslationModel { get; set; }
         public bool IsTestingMode { get; set; }
+    }
+    
+    public class CohereExamAPIKeys
+    {
+        public List<string> CohereKeys { get; set; }
     }
 }

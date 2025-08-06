@@ -9,6 +9,7 @@ using CoreVisionServiceModels.v1.Examination;
 using CoreVisionServiceModels.v1.General.AI;
 using CoreVisionServiceModels.v1.General.HuggingFace;
 using Newtonsoft.Json;
+using System;
 using System.Net.Http.Headers;
 using System.Text;
 
@@ -83,7 +84,8 @@ namespace CoreVisionBAL.General.AI
             var prompt = _promptProcess.GeneratePromptForMCQ(objSM);
 
             var apiUrl = _cohereBaseUrl;
-            var key = _cohereApiKey;
+            //var key = _cohereApiKey;
+            var key = GetRandomCohereExamApiKey();
 
             var requestBody = new
             {
@@ -166,9 +168,9 @@ namespace CoreVisionBAL.General.AI
             {
                 throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "No input data found", "No input data found");
             }
-
             var apiUrl = _cohereBaseUrl;
-            var key = _cohereApiKey;
+            var key = GetRandomCohereExamApiKey();
+            //var key = _cohereApiKey;
 
             var requestBody = new
             {
@@ -242,5 +244,23 @@ namespace CoreVisionBAL.General.AI
         }
 
         #endregion QNA
+
+        #region Generate Random Cohere API Key
+
+        public string GetRandomCohereExamApiKey()
+        {
+            var cohereExamAPIKeys = _apiConfiguration.ExternalIntegrations.CohereExamAPIKeys;
+            if (cohereExamAPIKeys?.CohereKeys == null || !cohereExamAPIKeys.CohereKeys.Any())
+            {
+                throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, "No Cohere API keys found", "Something went wrong, Please try again.");
+            }
+
+            var random = new Random();
+            var randomIndex = random.Next(cohereExamAPIKeys.CohereKeys.Count);
+            return cohereExamAPIKeys.CohereKeys[randomIndex];
+            
+        }
+
+        #endregion Generate Random Cohere API Key
     }
 }
