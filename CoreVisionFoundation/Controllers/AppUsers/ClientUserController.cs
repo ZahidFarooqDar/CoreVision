@@ -14,28 +14,22 @@ using Microsoft.AspNetCore.Mvc;
 namespace CoreVisionFoundation.Controllers.AppUsers
 {
     [ApiController]
-    [Route("api/v1/[controller]")]
-    
-    [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin, SystemAdmin, ClientAdmin")]
+    [Route("api/v1/[controller]")]   
+   
     public partial class ClientUserController : ApiControllerWithOdataRoot<ClientUserSM>
     {
         #region Properties
         private readonly ClientUserProcess _clientUserProcess;
-        private readonly APIConfiguration _apiConfiguration;
-        private readonly JwtHandler _jwtHandler;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWebHostEnvironment _environment;
         #endregion Properties
 
         #region Constructor
-        public ClientUserController(ClientUserProcess process, IWebHostEnvironment environment, IHttpContextAccessor httpContextAccessor,
-            APIConfiguration apiConfiguration, JwtHandler jwtHandler)
+        public ClientUserController(ClientUserProcess process, IWebHostEnvironment environment, IHttpContextAccessor httpContextAccessor)
             : base(process)
         {
             _clientUserProcess = process;
             _environment = environment;
-            _apiConfiguration = apiConfiguration;
-            _jwtHandler = jwtHandler;
             _httpContextAccessor = httpContextAccessor;
         }
         #endregion Constructor
@@ -45,6 +39,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
         [HttpGet]
         [Route("odata")]
         [ApiExplorerSettings(IgnoreApi = true)]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin")]
         public async Task<ActionResult<ApiResponse<IEnumerable<ClientUserSM>>>> GetAsOdata(ODataQueryOptions<ClientUserSM> oDataOptions)
         {
             //oDataOptions.Filter = new FilterQueryOption();
@@ -61,6 +56,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
         #region Get Endpoints
 
         [HttpGet]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin")]
         public async Task<ActionResult<ApiResponse<IEnumerable<ClientUserSM>>>> GetAll()
         {
             var listSM = await _clientUserProcess.GetAllClientUsers();
@@ -68,6 +64,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
         }
 
         [HttpGet("company/{companyId}/{skip}/{top}")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin")]
         public async Task<ActionResult<ApiResponse<IEnumerable<ClientUserSM>>>> GetUsersByCompanyId(int companyId, int skip, int top)
         {
             var listSM = await _clientUserProcess.GetUsersByCompanyId(companyId, skip, top);
@@ -75,6 +72,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
         }
 
         [HttpGet("companyusers/count/{companyId}")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin")]
         public async Task<ActionResult<ApiResponse<IntResponseRoot>>> GetCountOfCompanyUsers(int companyId)
         {
             var countResp = await _clientUserProcess.GetCountOfCompanyUsers(companyId);
@@ -82,6 +80,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
         }
 
         [HttpGet("{id}")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin")]
         public async Task<ActionResult<ApiResponse<ClientUserSM>>> GetById(int id)
         {
             var singleSM = await _clientUserProcess.GetClientUserById(id);
@@ -96,6 +95,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
         }
 
         [HttpGet("mine")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "ClientEmployee")]
         public async Task<ActionResult<ApiResponse<ClientUserSM>>> GetMine()
         {
             var id = User.GetUserRecordIdFromCurrentUserClaims();
@@ -139,9 +139,6 @@ namespace CoreVisionFoundation.Controllers.AppUsers
                 return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_PassedDataNotSaved, ApiErrorTypeSM.NoRecord_NoLog));
             }
         }
-
-
-
 
         [HttpPut("mine")]
         [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "ClientEmployee")]
@@ -262,6 +259,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
         #region Delete Endpoints
 
         [HttpDelete("{id}")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin")]
         public async Task<ActionResult<ApiResponse<DeleteResponseRoot>>> Delete(int id)
         {
             var resp = await _clientUserProcess.DeleteClientUserById(id);
@@ -276,6 +274,7 @@ namespace CoreVisionFoundation.Controllers.AppUsers
         }
 
         [HttpDelete("mine/logo")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "SuperAdmin")]
         public async Task<ActionResult<ApiResponse<DeleteResponseRoot>>> DeleteUserProfilePicture()
         {
             #region Check Request
@@ -299,7 +298,6 @@ namespace CoreVisionFoundation.Controllers.AppUsers
 
         [HttpPost("forgotpassword")]
         [AllowAnonymous]
-        //[Authorize(AuthenticationSchemes = APIBearerTokenAuthHandler.DefaultSchema, Roles = "ClientAdmin,ClientEmployee")]
         public async Task<ActionResult<ApiResponse<ClientUserSM>>> ForgotPassword([FromBody] ApiRequest<ForgotPasswordSM> apiRequest)
         {
             #region Check Request
@@ -327,7 +325,6 @@ namespace CoreVisionFoundation.Controllers.AppUsers
 
         [HttpPost("resetpassword")]
         [AllowAnonymous]
-        //[Authorize(AuthenticationSchemes = APIBearerTokenAuthHandler.DefaultSchema, Roles = "ClientAdmin,ClientEmployee")]
         public async Task<ActionResult<ApiResponse<ClientUserSM>>> ResetPassword([FromBody] ApiRequest<ResetPasswordRequestSM> apiRequest)
         {
             var innerReq = apiRequest?.ReqData;
@@ -348,7 +345,6 @@ namespace CoreVisionFoundation.Controllers.AppUsers
 
         [HttpGet("validatepassword")]
         [AllowAnonymous]
-        //[Authorize(AuthenticationSchemes = APIBearerTokenAuthHandler.DefaultSchema, Roles = "ClientAdmin,ClientEmployee")]
         public async Task<ActionResult<ApiResponse<IntResponseRoot>>> ValidatePassword(string authCode)
         {
             var resp = await _clientUserProcess.ValidatePassword(authCode);
@@ -363,5 +359,50 @@ namespace CoreVisionFoundation.Controllers.AppUsers
         }
 
         #endregion ForgotPassword & ResetPassword EndPoints
+
+        #region Set/Update Password
+               
+
+        [HttpPost("SetPassword")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "ClientEmployee,ClientAdmin")]
+        public async Task<ActionResult<ApiResponse<BoolResponseRoot>>> SetPassword([FromBody] ApiRequest<SetPasswordRequestSM> apiRequest)
+        {
+            int currentUserRecordId = User.GetUserRecordIdFromCurrentUserClaims();
+            if (currentUserRecordId <= 0)
+            {
+                return NotFound(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_IdNotInClaims));
+            }
+
+            var innerReq = apiRequest?.ReqData;
+            if (innerReq == null)
+            {
+                return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
+            }
+
+            var resp = await _clientUserProcess.SetPassword(currentUserRecordId, innerReq);
+            return Ok(ModelConverter.FormNewSuccessResponse(resp));
+        }
+
+        [HttpPost("UpdatePassword")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "ClientEmployee,ClientAdmin")]
+        public async Task<ActionResult<ApiResponse<BoolResponseRoot>>> ChangePassword([FromBody] ApiRequest<UpdatePasswordRequestSM> apiRequest)
+        {
+            int currentUserRecordId = User.GetUserRecordIdFromCurrentUserClaims();
+            if (currentUserRecordId <= 0)
+            {
+                return NotFound(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_IdNotInClaims));
+            }
+
+            var innerReq = apiRequest?.ReqData;
+            if (innerReq == null)
+            {
+                return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_ReqDataNotFormed, ApiErrorTypeSM.InvalidInputData_NoLog));
+            }
+
+            var resp = await _clientUserProcess.ChangePassword(currentUserRecordId, innerReq);
+            return Ok(ModelConverter.FormNewSuccessResponse(resp));
+        }
+
+        #endregion Set/Update Password
     }
 }

@@ -91,14 +91,22 @@ namespace CoreVisionBAL.Token
                         if (data != null && data.User != null)
                         {
                             loginUserSM = _mapper.Map<ClientUserSM>(data.User);
-                            compId = data.CompId;
+                            if (string.IsNullOrEmpty(data.User.PasswordHash))
+                            {
+                                loginUserSM.IsPasswordPresent = false;
+                            }
+                            else
+                            {
+                                loginUserSM.IsPasswordPresent = true;
+                            }
+                                compId = data.CompId;
                             // loginUserSM.LoginStatus = LoginStatusSM.Enabled;
                         }
                     }
                     break;
             }
             if (loginUserSM != null)
-            {
+            {                
                 if (!loginUserSM.ProfilePicturePath.IsNullOrEmpty())
                 {
                     loginUserSM.ProfilePicturePath = await ConvertToBase64(loginUserSM.ProfilePicturePath);

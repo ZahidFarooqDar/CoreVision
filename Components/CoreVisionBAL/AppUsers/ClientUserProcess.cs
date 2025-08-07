@@ -98,10 +98,17 @@ namespace CoreVisionBAL.AppUsers
             if (clientUserDM != null)
             {
                 var sm = _mapper.Map<ClientUserSM>(clientUserDM);
-                if (!sm.ProfilePicturePath.IsNullOrEmpty())
+                if (string.IsNullOrEmpty(clientUserDM.PasswordHash))
                 {
+                    sm.IsPasswordPresent = false;
+                }
+                else
+                {
+                    sm.IsPasswordPresent = true;
+                }
+                if (!sm.ProfilePicturePath.IsNullOrEmpty())
+                {                    
                     sm.ProfilePicturePath = await ConvertToBase64(sm.ProfilePicturePath);
-
                 }
                 return sm;
             }
@@ -873,6 +880,148 @@ namespace CoreVisionBAL.AppUsers
 
         #endregion Reset/Forgot Password
 
+        #region Set / Update Password
+
+        #region Set Password
+        /// <summary>
+        /// Sets a password for a user based on their unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the user.</param>
+        /// <param name="objSM">The request object containing the new password.</param>
+        /// <returns>
+        /// A <see cref="BoolResponseRoot"/> indicating whether the password was successfully set.
+        /// </returns>
+        /// <exception cref="CoreVisionException">
+        /// Thrown if the password is empty, if a password has already been set, or if an error occurs during saving.
+        /// </exception>
+        /// <remarks>
+        /// This method performs the following steps:
+        /// <list type="number">
+        /// <item>Validates that the provided password is not empty.</item>
+        /// <item>Finds the user in the database using the provided ID.</item>
+        /// <item>If the user exists, checks whether a password is already set.</item>
+        /// <item>If no password is set, encrypts and saves the new password.</item>
+        /// <item>Returns `true` if the password is successfully saved, otherwise throws an exception.</item>
+        /// </list>
+        /// </remarks>
+        public async Task<BoolResponseRoot> SetPassword(int id, SetPasswordRequestSM objSM)
+        {
+            if (string.IsNullOrEmpty(objSM.Password))
+            {
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Password is required, Please enter a password.", "Password is required, Please enter a password.");
+            }
+            var dm = await _apiDbContext.ClientUsers.FindAsync(id);
+            if (dm != null)
+            {
+                if (!string.IsNullOrEmpty(dm.PasswordHash))
+                {
+                    return new BoolResponseRoot(false, "A password has already been set for this account.");
+                }
+                else
+                {
+
+                    var passwordHash = await _passwordEncryptHelper.ProtectAsync<string>(objSM.Password);
+                    dm.PasswordHash = passwordHash;
+                    dm.LastModifiedBy = _loginUserDetail.LoginId;
+                    dm.LastModifiedOnUTC = DateTime.UtcNow;
+                    if (await _apiDbContext.SaveChangesAsync() > 0)
+                    {
+                        return new BoolResponseRoot(true, "Your password has been set successfully.");
+                    }
+                    else
+                    {
+                        throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,
+                            $"Set Password Failed for client user with emailId: {dm.EmailId}",
+                            "An error occurred while setting your password. Please try again later.");
+                    }
+                }
+            }
+            return null;
+        }
+
+        #endregion Set Password
+
+        #region Change password
+        /// <summary>
+        /// Updates the password for a user based on their unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the user.</param>
+        /// <param name="objSM">The request object containing the old and new passwords.</param>
+        /// <returns>
+        /// A <see cref="BoolResponseRoot"/> indicating whether the password was successfully changed.
+        /// </returns>
+        /// <exception cref="CoreVisionException">
+        /// Thrown if:
+        /// <list type="bullet">
+        /// <item>The old or new password is missing.</item>
+        /// <item>No password is currently set for the user.</item>
+        /// <item>The old password does not match the stored password.</item>
+        /// <item>The new password is the same as the old password.</item>
+        /// <item>An error occurs while saving the changes.</item>
+        /// </list>
+        /// </exception>
+        /// <remarks>
+        /// This method performs the following steps:
+        /// <list type="number">
+        /// <item>Validates that both old and new passwords are provided.</item>
+        /// <item>Retrieves the user from the database using the provided ID.</item>
+        /// <item>Checks if a password exists for the user; if not, prompts to set one.</item>
+        /// <item>Encrypts the provided old password and verifies it against the stored password.</item>
+        /// <item>Ensures the new password is different from the old one.</item>
+        /// <item>Encrypts and saves the new password, updating relevant metadata.</item>
+        /// <item>Returns `true` if the password is successfully updated, otherwise throws an exception.</item>
+        /// </list>
+        /// </remarks>
+
+        public async Task<BoolResponseRoot> ChangePassword(int id, UpdatePasswordRequestSM objSM)
+        {
+            if (string.IsNullOrEmpty(objSM.OldPassword) || string.IsNullOrEmpty(objSM.NewPassword))
+            {
+                throw new CoreVisionException(ApiErrorTypeSM.InvalidInputData_NoLog, "Password is required, Please enter a password.", "Password is required, Please enter a password.");
+            }
+            var dm = await _apiDbContext.ClientUsers.FindAsync(id);
+            if (dm != null)
+            {
+                if (string.IsNullOrEmpty(dm.PasswordHash))
+                {
+                    return new BoolResponseRoot(false, "No password is set for this account. Please set a new password.");
+                }
+                else
+                {
+
+                    var oldPasswordHash = await _passwordEncryptHelper.ProtectAsync<string>(objSM.OldPassword);
+
+                    if (!oldPasswordHash.Equals(dm.PasswordHash))
+                    {
+                        return new BoolResponseRoot(false, "The password you entered is incorrect. You can try again or reset your password if you've forgotten it.");
+                    }
+                    var newPasswordHash = await _passwordEncryptHelper.ProtectAsync<string>(objSM.NewPassword);
+                    if (oldPasswordHash.Equals(newPasswordHash))
+                    {
+                        return new BoolResponseRoot(false, "Your new password must be different from the old one. Please choose a new password.");
+                    }
+                    dm.PasswordHash = newPasswordHash;
+                    dm.LastModifiedBy = _loginUserDetail.LoginId;
+                    dm.LastModifiedOnUTC = DateTime.UtcNow;
+                    if (await _apiDbContext.SaveChangesAsync() > 0)
+                    {
+                        return new BoolResponseRoot(true, "Your password has been updated successfully.");
+                    }
+                    else
+                    {
+                        throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log,
+                            $"Password updation Failed for client user with emailId: {dm.EmailId}",
+                            "Something went wrong while updating your password. Please try again later.");
+                    }
+                }
+            }
+            return null;
+        }
+
+        #endregion Change password
+
+        #endregion Set / Update Password
+
         #region Validate User 
 
         private string ValidateUserUsingEmail(EmailConfirmationSM objSM)
@@ -912,7 +1061,7 @@ namespace CoreVisionBAL.AppUsers
 
         #endregion Validate User and Send Email
 
-        #region Send.Resend/Verify verification OTP email
+        #region Send Resend/Verify verification OTP email
 
         public async Task<BoolResponseRoot> SendEmailVerificationOTP(EmailConfirmationSM objSM, long otp)
         {

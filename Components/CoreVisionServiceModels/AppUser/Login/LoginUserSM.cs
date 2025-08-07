@@ -20,7 +20,7 @@ namespace CoreVisionServiceModels.AppUser.Login
         public string PasswordHash { get; set; }
         public string PhoneNumber { get; set; }
         public string ProfilePicturePath { get; set; }
-
+        public bool IsPasswordPresent { get; set; } = false;
         public bool IsPhoneNumberConfirmed { get; set; }
         public bool IsEmailConfirmed { get; set; }
         public LoginStatusSM LoginStatus { get; set; }
