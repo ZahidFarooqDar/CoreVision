@@ -170,6 +170,32 @@ namespace CoreVisionFoundation.Controllers.AppUsers
             }
         }
 
+
+        [HttpGet("dashboard")]
+        [Authorize(AuthenticationSchemes = CoreVisionBearerTokenAuthHandlerRoot.DefaultSchema, Roles = "ClientEmployee")]
+        public async Task<ActionResult<ApiResponse<ClientUserSM>>> Dashboard()
+        {
+            #region Check Request
+
+            var id = User.GetUserRecordIdFromCurrentUserClaims();
+            if (id <= 0)
+            {
+                return BadRequest(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_IdInvalid, ApiErrorTypeSM.InvalidInputData_NoLog));
+            }
+
+            #endregion Check Request
+
+            var updatedSM = await _clientUserProcess.GetUserDashboard(id);
+            if (updatedSM != null)
+            {
+                return Ok(ModelConverter.FormNewSuccessResponse(updatedSM));
+            }
+            else
+            {
+                return NotFound(ModelConverter.FormNewErrorResponse(DomainConstants.DisplayMessagesRoot.Display_PassedDataNotSaved, ApiErrorTypeSM.NoRecord_NoLog));
+            }
+        }
+
         #endregion Add/Update Endpoints
 
         #region Check Email/loginId and Verify Email

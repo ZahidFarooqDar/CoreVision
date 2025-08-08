@@ -16,6 +16,7 @@ using CoreVisionBAL.Base.Email;
 using CoreVisionBAL.Clients;
 using CoreVisionServiceModels.v1.General;
 using CoreVisionBAL.License;
+using CoreVisionBAL.General.Examination;
 
 namespace CoreVisionBAL.AppUsers
 {
@@ -24,24 +25,26 @@ namespace CoreVisionBAL.AppUsers
         #region Properties
 
         private readonly IPasswordEncryptHelper _passwordEncryptHelper;
-        private readonly APIConfiguration _apiConfiguration;
         private readonly ClientCompanyDetailProcess _clientCompanyDetailProcess;
         private readonly EmailProcess _emailProcess;
+        private readonly ExamProcess _examProcess;
+        private readonly UserExamProcess _userExamProcess;
         private readonly UserLicenseDetailsProcess _userLicenseDetailsProcess;
         private readonly UserTestLicenseDetailsProcess _userTestLicenseDetailsProcess;
 
         #endregion Properties
 
         #region Constructor
-        public ClientUserProcess(IMapper mapper, ILoginUserDetail loginUserDetail, ApiDbContext apiDbContext,UserTestLicenseDetailsProcess userTestLicenseDetailsProcess,
-            ClientCompanyDetailProcess clientCompanyDetailProcess, EmailProcess emailProcess, UserLicenseDetailsProcess userLicenseDetailsProcess,
-            IPasswordEncryptHelper passwordEncryptHelper, APIConfiguration apiConfiguration)
+        public ClientUserProcess(IMapper mapper, ILoginUserDetail loginUserDetail, ApiDbContext apiDbContext,UserTestLicenseDetailsProcess userTestLicenseDetailsProcess,UserExamProcess userExamProcess,
+            ClientCompanyDetailProcess clientCompanyDetailProcess, EmailProcess emailProcess, UserLicenseDetailsProcess userLicenseDetailsProcess,ExamProcess examProcess,
+            IPasswordEncryptHelper passwordEncryptHelper)
             : base(mapper, loginUserDetail, apiDbContext)
         {
             _passwordEncryptHelper = passwordEncryptHelper;
-            _apiConfiguration = apiConfiguration;
             _clientCompanyDetailProcess = clientCompanyDetailProcess;
             _emailProcess = emailProcess;
+            _examProcess = examProcess;
+            _userExamProcess = userExamProcess;
             _userLicenseDetailsProcess = userLicenseDetailsProcess;
             _userTestLicenseDetailsProcess = userTestLicenseDetailsProcess;
         }
@@ -813,7 +816,7 @@ namespace CoreVisionBAL.AppUsers
             {
                 throw new CoreVisionException(ApiErrorTypeSM.Fatal_Log, $"No ClientUser with username '{forgotPassword.UserName}' found.");
             }
-        }
+        }        
 
         public async Task<IntResponseRoot> ValidatePassword(string authCode)
         {
@@ -1279,6 +1282,35 @@ namespace CoreVisionBAL.AppUsers
         }
 
         #endregion Confirm Email
+
+        #region Dashboard
+
+        public async Task<UserDashboardSM> GetUserDashboard(int userId)
+        {
+            var userDetails = await GetClientUserById(userId);
+            var exams = await _examProcess.GetAllActiveExams();
+            var activeLicense = await _userTestLicenseDetailsProcess.GetActiveUserLicenseDetailsOrLastLicenseByUserId(userId);
+            var topExamPerformance = await _userExamProcess.GetUserTopExamPerformance(userId);
+            var topSubjectPerformance = await _userExamProcess.GetUserTopSubjectPerformance(userId);
+            var topTopicPerformance = await _userExamProcess.GetUserTopTopicPerformance(userId);
+
+            var userDashboardSM = new UserDashboardSM()
+            {
+                UserDetails = userDetails,
+                LicenseDetails = activeLicense,
+                Exams = exams,
+                TopExamPerformance = topExamPerformance.TestName,
+                TopExamPercentage = topExamPerformance.Percentage,
+                TopSubjectPerformance = topSubjectPerformance.SubjectName,
+                TopSubjectPercentage = topSubjectPerformance.Percentage,
+                TopTopicPerformance = topTopicPerformance.TopicName,
+                TopTopicPercentage = topTopicPerformance.Percentage
+                
+            };
+            return userDashboardSM;
+        }
+
+        #endregion Dashboard
 
         #region Private Functions
 

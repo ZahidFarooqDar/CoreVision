@@ -460,5 +460,99 @@ namespace CoreVisionBAL.General.Examination
 
         #endregion User Test Results
 
+        #region User Top Performances
+
+        public async Task<(string TestName, double Percentage)> GetUserTopExamPerformance(int userId)
+        {
+            // Fetch all exam tests for user
+            var examTests = await _apiDbContext.ClientExamTests
+                .Where(x => x.UserId == userId && x.TotalMarks > 0)
+                .ToListAsync();
+
+            if (!examTests.Any())
+                return ( "", 0);
+
+            // Calculate percentages for each exam test grouped by ExamId
+            var grouped = examTests
+                .GroupBy(x => x.ExamId)
+                .Select(g => new
+                {
+                    ExamId = g.Key,
+                    MarksObtained = g.Sum(x => x.MarksObtained),
+                    TotalMarks = g.Sum(x => x.TotalMarks),
+                    Percentage = (double)g.Sum(x => x.MarksObtained) / g.Sum(x => x.TotalMarks) * 100
+                })
+                .OrderByDescending(x => x.Percentage)
+                .FirstOrDefault();
+
+            if (grouped == null)
+                return ("", 0);
+
+            var exam = await _apiDbContext.Exams.FindAsync(grouped.ExamId);
+
+            return (exam?.ExamName, Math.Round(grouped.Percentage, 2));
+        }
+
+        public async Task<(string SubjectName, double Percentage)> GetUserTopSubjectPerformance(int userId)
+        {
+            var subjectTests = await _apiDbContext.ClientSubjectTests
+                .Where(x => x.UserId == userId && x.TotalMarks.GetValueOrDefault() > 0)
+                .ToListAsync();
+
+            if (!subjectTests.Any())
+                return ("", 0);
+
+            var grouped = subjectTests
+                .GroupBy(x => x.SubjectId)
+                .Select(g => new
+                {
+                    SubjectId = g.Key,
+                    MarksObtained = g.Sum(x => x.MarksObtained).GetValueOrDefault(),
+                    TotalMarks = g.Sum(x => x.TotalMarks).GetValueOrDefault(),
+                    Percentage = (double)(g.Sum(x => x.MarksObtained).GetValueOrDefault()) / g.Sum(x => x.TotalMarks).GetValueOrDefault() * 100
+                })
+                .OrderByDescending(x => x.Percentage)
+                .FirstOrDefault();
+
+            if (grouped == null)
+                return ("", 0);
+
+            var subject = await _apiDbContext.Subjects.FindAsync(grouped.SubjectId);
+
+            // Math.Round for double (non-nullable) property
+            return (subject?.SubjectName, Math.Round(grouped.Percentage, 2));
+        }
+
+        public async Task<(string TopicName, double Percentage)> GetUserTopTopicPerformance(int userId)
+        {
+            var topicTests = await _apiDbContext.ClientTopicTests
+                .Where(x => x.UserId == userId && x.TotalMarks > 0)
+                .ToListAsync();
+
+            if (!topicTests.Any())
+                return ("", 0);
+
+            var grouped = topicTests
+                .GroupBy(x => x.SubjectTopicId)
+                .Select(g => new
+                {
+                    TopicId = g.Key,
+                    MarksObtained = g.Sum(x => x.MarksObtained),
+                    TotalMarks = g.Sum(x => x.TotalMarks),
+                    Percentage = (double)g.Sum(x => x.MarksObtained) / g.Sum(x => x.TotalMarks) * 100
+                })
+                .OrderByDescending(x => x.Percentage)
+                .FirstOrDefault();
+
+            if (grouped == null)
+                return ("", 0);
+
+            var topic = await _apiDbContext.SubjectTopics.FindAsync(grouped.TopicId);
+
+            return (topic?.TopicName, Math.Round(grouped.Percentage, 2));
+        }
+
+        #endregion
+
     }
 }

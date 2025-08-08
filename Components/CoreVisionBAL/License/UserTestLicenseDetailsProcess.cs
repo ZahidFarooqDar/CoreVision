@@ -302,6 +302,29 @@ namespace CoreVisionBAL.License
             }
         }
 
+        public async Task<UserTestLicenseDetailsSM> GetActiveUserLicenseDetailsOrLastLicenseByUserId(int currentUserId)
+        {
+            var activeLicense = await _apiDbContext.UserTestLicenseDetails
+                .FirstOrDefaultAsync(x => x.ClientUserId == currentUserId && x.LicenseStatus == LicenseStatusDM.Active);
+
+            if (activeLicense != null)
+            {
+                return _mapper.Map<UserTestLicenseDetailsSM>(activeLicense);
+            }
+
+            // 2. If no active license, get the latest (most recent by CreatedOnUTC)
+            var lastUsedLicense = await _apiDbContext.UserTestLicenseDetails
+                .Where(x => x.ClientUserId == currentUserId)
+                .OrderByDescending(x => x.CreatedOnUTC)
+                .FirstOrDefaultAsync();
+            if(lastUsedLicense == null)
+            {
+                return new UserTestLicenseDetailsSM();
+            }
+            return _mapper.Map<UserTestLicenseDetailsSM>(lastUsedLicense);
+        }
+
+
         public async Task<int> GetActiveUserLicenseTestCountsByUserId(int currentUserId)
         {
             UserTestLicenseDetailsDM? existingLicense = await _apiDbContext.UserTestLicenseDetails.FirstOrDefaultAsync(x => x.ClientUserId == currentUserId && x.LicenseStatus == LicenseStatusDM.Active);
